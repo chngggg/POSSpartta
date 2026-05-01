@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             SparepartSeeder::class,
             NotificationSeeder::class,
+            SettingSeeder::class,
         ]);
     }
 }

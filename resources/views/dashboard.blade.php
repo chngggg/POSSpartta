@@ -122,7 +122,7 @@
             </h6>
             <p class="text-muted small mb-3">Stock opname via barcode scanner</p>
             <div class="d-grid">
-                <a href="{{ route('stock.opname') }}" class="btn btn-outline-gold">
+                <a href="{{ route('stock.opname.index') }}" class="btn btn-outline-gold">
                     <i class="fas fa-camera me-2"></i>Scan Barcode
                 </a>
             </div>

@@ -107,12 +107,11 @@
                             </a>
                         </li>
 
-                        <!-- Scan Barcode / Stock Opname - Semua role bisa akses -->
+                        <!-- Stock Opname / Scan Barcode - Semua role bisa akses -->
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('stock.opname') ? 'active' : '' }}" href="{{ route('stock.opname') }}">
+                            <a class="nav-link {{ request()->routeIs('stock.*') ? 'active' : '' }}" href="{{ route('stock.opname.index') }}">
                                 <i class="fas fa-clipboard-list"></i>
-                                <span>Scan Barcode</span>
-                                <small class="text-muted ms-2">Stock Opname</small>
+                                <span>Stock Opname</span>
                             </a>
                         </li>
 

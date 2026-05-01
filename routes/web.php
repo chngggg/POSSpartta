@@ -7,6 +7,12 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\SparepartController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\StockOpnameController;
+use App\Http\Controllers\StockCardController;
+use App\Http\Controllers\PurchaseReceiptController;
+use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\ReportController;
 use App\Models\Sparepart;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -68,19 +74,42 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos/search-by-barcode', [PosController::class, 'getByBarcode'])->name('pos.search-by-barcode');
     Route::get('/pos/generate-qris', [PosController::class, 'generateQRIS'])->name('pos.generate-qris');
 
-    // -----------------------------------------
-    // Stock Opname / Scan Barcode - Semua role bisa akses
-    // -----------------------------------------
-    Route::get('/stock-opname', function () {
-        return view('stock.opname');
-    })->name('stock.opname');
+    // =============================================
+    // Stock Opname Routes
+    // =============================================
+    Route::middleware(['auth', 'role:super-admin,admin'])->prefix('stock')->name('stock.')->group(function () {
+        // Stock Opname Routes
+        Route::resource('opname', StockOpnameController::class);
+        Route::get('opname/{id}/print', [StockOpnameController::class, 'printBeritaAcara'])->name('opname.print');
+        Route::get('opname/{stockOpname}/export', [StockOpnameController::class, 'export'])->name('opname.export');
 
-    // -----------------------------------------
-    // Reports / Laporan - Semua role bisa akses
-    // -----------------------------------------
-    Route::get('/reports', function () {
-        return view('reports.index');
-    })->name('reports.index');
+        // Stock Card (Kartu Persediaan)
+        Route::get('card', [StockCardController::class, 'index'])->name('card.index');
+        Route::get('card/{sparepart}', [StockCardController::class, 'show'])->name('card.show');
+
+        // Purchase Receipt (Bukti Barang Masuk)
+        Route::resource('purchase', PurchaseReceiptController::class);
+        Route::post('purchase/{purchaseReceipt}/attachment', [PurchaseReceiptController::class, 'uploadAttachment'])->name('purchase.attachment');
+
+        // Stock Adjustment (Penyesuaian Stok)
+        Route::resource('adjustment', StockAdjustmentController::class);
+
+        // Supplier
+        Route::resource('supplier', SupplierController::class);
+    });
+
+    // =============================================
+    // Reports / Laporan Routes
+    // =============================================
+    Route::middleware(['auth', 'role:super-admin,admin'])->prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/stock-card', [ReportController::class, 'stockCard'])->name('stock-card');
+        Route::get('/mutation', [ReportController::class, 'mutation'])->name('mutation');
+        Route::get('/stock-opname', [ReportController::class, 'stockOpname'])->name('stock-opname');
+        Route::get('/summary', [ReportController::class, 'summary'])->name('summary');
+        Route::get('/financial', [ReportController::class, 'financial'])->name('financial');
+        Route::get('/export', [ReportController::class, 'export'])->name('export');
+    });
 
     // -----------------------------------------
     // Settings / Profile - Semua role bisa akses
