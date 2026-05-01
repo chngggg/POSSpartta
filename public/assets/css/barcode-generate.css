@@ -1,0 +1,259 @@
+/* =====================================================
+   SPARTTAPOS - BARCODE GENERATE STYLES
+   ===================================================== */
+
+.generate-barcode-container {
+    animation: fadeInUp 0.5s ease;
+}
+
+/* Header */
+.page-header {
+    margin-bottom: 24px;
+}
+
+.page-header h4 {
+    color: var(--gold);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* Filter Section */
+.filter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.search-wrapper {
+    position: relative;
+    flex: 1;
+    max-width: 350px;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    background: #1a1a1a;
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-sm {
+    padding: 6px 16px;
+    font-size: 0.75rem;
+}
+
+/* Sparepart Grid */
+.sparepart-list-container {
+    background: #141414;
+    border-radius: 20px;
+    border: 1px solid var(--border-light);
+    padding: 24px;
+}
+
+.sparepart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.sparepart-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sparepart-grid::-webkit-scrollbar-track {
+    background: var(--border-light);
+    border-radius: 10px;
+}
+
+.sparepart-grid::-webkit-scrollbar-thumb {
+    background: var(--gold);
+    border-radius: 10px;
+}
+
+/* Sparepart Card */
+.sparepart-card {
+    background: #1a1a1a;
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid var(--border-light);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.sparepart-card:hover {
+    border-color: var(--border-gold);
+    transform: translateY(-2px);
+    background: #1f1f1f;
+}
+
+.sparepart-card.selected {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+/* Checkbox */
+.card-checkbox {
+    position: relative;
+}
+
+.card-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--gold);
+}
+
+/* Card Info */
+.card-info {
+    flex: 1;
+}
+
+.card-code {
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: var(--gold);
+    background: rgba(212, 175, 55, 0.1);
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.card-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.card-category {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.card-category i {
+    color: var(--gold);
+    margin-right: 4px;
+}
+
+/* Card Price */
+.card-price {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gold);
+    font-family: monospace;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-light);
+    justify-content: flex-end;
+}
+
+.selected-count {
+    text-align: right;
+    margin-top: 16px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.selected-count i {
+    color: var(--gold);
+}
+
+.selected-count span {
+    font-weight: 600;
+    color: var(--gold);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filter-section {
+        flex-direction: column;
+    }
+
+    .search-wrapper {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .filter-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .sparepart-grid {
+        grid-template-columns: 1fr;
+        max-height: 400px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .selected-count {
+        text-align: center;
+    }
+}

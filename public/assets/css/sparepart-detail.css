@@ -1,0 +1,280 @@
+/* =====================================================
+   SPARTTAPOS - SPAREPART DETAIL STYLES
+   ===================================================== */
+
+.detail-sparepart-container {
+    animation: fadeInUp 0.5s ease;
+}
+
+/* Header */
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.btn-back {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    background: #141414;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    text-decoration: none;
+    border: 1px solid var(--border-light);
+    transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+    background: var(--gold);
+    color: #0a0a0a;
+    transform: translateX(-3px);
+}
+
+.detail-header h4 {
+    color: var(--gold);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+}
+
+.detail-header p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* Content */
+.detail-content {
+    margin-top: 20px;
+}
+
+/* Info Card */
+.info-card {
+    background: #141414;
+    border-radius: 20px;
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    height: 100%;
+}
+
+.info-header {
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.info-header h5 {
+    color: var(--gold);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.info-body {
+    padding: 20px;
+}
+
+/* Info Table */
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.info-table tr {
+    border-bottom: 1px solid var(--border-light);
+}
+
+.info-table tr:last-child {
+    border-bottom: none;
+}
+
+.info-table th {
+    padding: 12px 8px 12px 0;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: left;
+}
+
+.info-table th i {
+    color: var(--gold);
+    width: 20px;
+    margin-right: 8px;
+}
+
+.info-table td {
+    padding: 12px 0;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+/* Price Text */
+.price-text {
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.price-text.gold {
+    color: var(--gold);
+    font-size: 1rem;
+}
+
+/* Code Badge */
+.code-badge {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--gold);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+/* Category Badge */
+.category-badge {
+    background: rgba(52, 152, 219, 0.15);
+    color: #3498db;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+}
+
+/* Stock Badge */
+.stock-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.stock-normal {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+}
+
+.stock-low {
+    background: rgba(243, 156, 18, 0.15);
+    color: #f39c12;
+}
+
+.stock-critical {
+    background: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+}
+
+/* Barcode Card */
+.barcode-card {
+    background: #141414;
+    border-radius: 20px;
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    height: 100%;
+}
+
+.barcode-header {
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.barcode-header h5 {
+    color: var(--gold);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.barcode-body {
+    padding: 30px 20px;
+}
+
+.barcode-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+}
+
+.barcode-wrapper svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+}
+
+.barcode-code {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.barcode-code strong {
+    color: var(--gold);
+    font-family: monospace;
+    font-size: 1rem;
+    letter-spacing: 1px;
+}
+
+.barcode-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.barcode-actions .btn {
+    min-width: 160px;
+    justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .info-table th,
+    .info-table td {
+        display: block;
+        padding: 8px 0;
+    }
+
+    .info-table th {
+        padding-top: 12px;
+    }
+
+    .info-table td {
+        padding-bottom: 12px;
+    }
+
+    .barcode-actions {
+        flex-direction: column;
+    }
+
+    .barcode-actions .btn {
+        width: 100%;
+    }
+
+    .barcode-wrapper {
+        padding: 15px;
+    }
+
+    .row {
+        flex-direction: column;
+    }
+
+    .col-md-6 {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+}

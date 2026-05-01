@@ -1,0 +1,202 @@
+/* =====================================================
+   SPARTTAPOS - BARCODE PRINT MULTIPLE STYLES
+   ===================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0a0a0a;
+    padding: 20px;
+    font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+/* Print Header */
+.print-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #d4af37;
+}
+
+.print-header h1 {
+    color: #d4af37;
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.print-header p {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+/* Barcode Grid */
+.barcode-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* Barcode Item */
+.barcode-item {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.barcode-item img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.barcode-code {
+    font-family: monospace;
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #ccc;
+    color: #333;
+    letter-spacing: 1px;
+}
+
+.barcode-name {
+    font-size: 0.7rem;
+    color: #666;
+    margin-top: 6px;
+    line-height: 1.3;
+}
+
+/* Action Buttons */
+.action-buttons {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn {
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    margin: 0 5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #d4af37, #b8942e);
+    color: #0a0a0a;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #d4af37;
+    color: #d4af37;
+}
+
+.btn-secondary:hover {
+    background: rgba(212, 175, 55, 0.1);
+    transform: translateY(-2px);
+}
+
+/* =====================================================
+   PRINT STYLES
+   ===================================================== */
+@media print {
+    body {
+        background: white;
+        padding: 10px;
+        margin: 0;
+    }
+
+    .action-buttons {
+        display: none;
+    }
+
+    .print-header {
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .print-header h1 {
+        color: #000;
+        font-size: 1.2rem;
+    }
+
+    .print-header p {
+        color: #666;
+    }
+
+    .barcode-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+    }
+
+    .barcode-item {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border: 1px solid #ddd;
+        box-shadow: none;
+        padding: 12px;
+    }
+
+    .barcode-item img {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .barcode-code {
+        font-size: 0.75rem;
+    }
+
+    .barcode-name {
+        font-size: 0.65rem;
+    }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .barcode-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .barcode-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn {
+        justify-content: center;
+        width: 100%;
+    }
+}
