@@ -13,6 +13,7 @@ use App\Http\Controllers\PurchaseReceiptController;
 use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ProfileController;
 use App\Models\Sparepart;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -112,9 +113,12 @@ Route::middleware(['auth'])->group(function () {
     // -----------------------------------------
     // Settings / Profile - Semua role bisa akses
     // -----------------------------------------
-    Route::get('/settings/profile', function () {
-        return view('settings.profile');
-    })->name('settings.profile');
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'index'])->name('profile');
+        Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
+        Route::post('/profile/upload-avatar', [App\Http\Controllers\ProfileController::class, 'uploadAvatar'])->name('profile.upload-avatar');
+    });
 
     // -----------------------------------------
     // Notification Routes - Semua role bisa akses
