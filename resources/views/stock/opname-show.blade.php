@@ -13,8 +13,11 @@
             <p class="text-muted">Hasil perhitungan fisik barang</p>
         </div>
         <div>
-            <a href="{{ route('stock.opname.print', $stockOpname) }}" class="btn btn-outline-gold" target="_blank">
+            <a href="{{ route('stock.opname.print', $stockOpname->id) }}" class="btn btn-outline-gold" target="_blank">
                 <i class="fas fa-print me-2"></i> Cetak Berita Acara
+            </a>
+            <a href="{{ route('stock.opname.export', $stockOpname->id) }}" class="btn btn-outline-gold">
+                <i class="fas fa-file-export me-2"></i> Export Excel
             </a>
             <a href="{{ route('stock.opname.index') }}" class="btn btn-outline-gold">
                 <i class="fas fa-arrow-left me-2"></i> Kembali

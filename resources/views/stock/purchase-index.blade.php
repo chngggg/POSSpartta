@@ -85,6 +85,15 @@
     </div>
 </div>
 
+
+@endsection
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/stock.css') }}">
+@endpush
+
+@push('scripts')
+<script src="{{ asset('assets/js/stock.js') }}"></script>
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -111,12 +120,4 @@
         </div>
     </div>
 </div>
-@endsection
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/stock.css') }}">
-@endpush
-
-@push('scripts')
-<script src="{{ asset('assets/js/stock.js') }}"></script>
 @endpush

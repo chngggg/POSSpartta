@@ -81,7 +81,7 @@ Route::middleware(['auth'])->group(function () {
         // Stock Opname Routes
         Route::resource('opname', StockOpnameController::class);
         Route::get('opname/{id}/print', [StockOpnameController::class, 'printBeritaAcara'])->name('opname.print');
-        Route::get('opname/{stockOpname}/export', [StockOpnameController::class, 'export'])->name('opname.export');
+        Route::get('opname/{id}/export', [StockOpnameController::class, 'export'])->name('opname.export');
 
         // Stock Card (Kartu Persediaan)
         Route::get('card', [StockCardController::class, 'index'])->name('card.index');
@@ -98,9 +98,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('supplier', SupplierController::class);
     });
 
-    // =============================================
     // Reports / Laporan Routes
-    // =============================================
     Route::middleware(['auth', 'role:super-admin,admin'])->prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/stock-card', [ReportController::class, 'stockCard'])->name('stock-card');
