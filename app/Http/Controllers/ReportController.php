@@ -15,7 +15,7 @@ class ReportController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:super-admin,admin']);
+        $this->middleware(['auth']);
     }
 
     /**

@@ -93,8 +93,6 @@
 <link rel="stylesheet" href="{{ asset('assets/css/stock.css') }}">
 @endpush
 
-@push('scripts')
-<script src="{{ asset('assets/js/stock.js') }}"></script>
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -112,13 +110,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-gold" data-bs-dismiss="modal">Batal</button>
-                <form id="deleteForm" method="POST">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">Hapus</button>
-                </form>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash-alt me-1"></i> Hapus
+                </button>
             </div>
         </div>
     </div>
 </div>
-@endpush

@@ -173,7 +173,6 @@
 <link rel="stylesheet" href="{{ asset('assets/css/user-management.css') }}">
 @endpush
 
-@push('scripts')
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -200,4 +199,3 @@
         </div>
     </div>
 </div>
-@endpush

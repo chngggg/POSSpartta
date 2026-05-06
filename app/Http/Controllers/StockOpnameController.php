@@ -13,7 +13,7 @@ class StockOpnameController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:super-admin,admin']);
+        $this->middleware(['auth', 'role:super-admin,admin,']);
     }
 
     public function index()
@@ -93,22 +93,81 @@ class StockOpnameController extends Controller
         }
     }
 
-    public function show(StockOpname $stockOpname)
+    public function show($id)
     {
-        $stockOpname->load('items.sparepart.category', 'creator');
+        $stockOpname = StockOpname::with('items.sparepart', 'creator')->find($id);
+
+        if (!$stockOpname) {
+            return redirect()->route('stock.opname.index')
+                ->with('error', 'Data stock opname tidak ditemukan!');
+        }
+
         return view('stock.opname-show', compact('stockOpname'));
     }
 
-    public function destroy(StockOpname $stockOpname)
+    public function destroy($id)
     {
-        $stockOpname->delete();
-        return redirect()->route('stock.opname.index')
-            ->with('success', 'Stock opname berhasil dihapus!');
+        try {
+            $stockOpname = StockOpname::find($id);
+
+            if (!$stockOpname) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data stock opname tidak ditemukan!'
+                ], 404);
+            }
+
+            $stockOpname->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock opname berhasil dihapus!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function export(StockOpname $stockOpname)
+    public function export($id)
     {
-        return redirect()->back()->with('info', 'Fitur export sedang dalam pengembangan');
+        $stockOpname = StockOpname::with('items.sparepart')->findOrFail($id);
+
+        // Prepare data for export
+        $data = [];
+        $data[] = ['No.', 'Kode', 'Nama Sparepart', 'Stok Sistem', 'Stok Fisik', 'Selisih', 'Status'];
+
+        foreach ($stockOpname->items as $index => $item) {
+            $status = $item->difference == 0 ? 'Sesuai' : ($item->difference > 0 ? 'Kelebihan' : 'Kekurangan');
+            $data[] = [
+                $index + 1,
+                $item->sparepart->code,
+                $item->sparepart->name,
+                $item->system_stock . ' pcs',
+                $item->physical_stock . ' pcs',
+                ($item->difference >= 0 ? '+' : '') . $item->difference . ' pcs',
+                $status
+            ];
+        }
+
+        // Generate CSV
+        $filename = 'stock-opname-' . $stockOpname->opname_number . '.csv';
+        $handle = fopen('php://temp', 'w+');
+
+        foreach ($data as $row) {
+            fputcsv($handle, $row);
+        }
+
+        rewind($handle);
+        $content = stream_get_contents($handle);
+        fclose($handle);
+
+        return response($content, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     public function printBeritaAcara($id)

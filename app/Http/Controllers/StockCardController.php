@@ -10,7 +10,7 @@ class StockCardController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:super-admin,admin']);
+        $this->middleware(['auth']);
     }
 
     public function index(Request $request)

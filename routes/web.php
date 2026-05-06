@@ -76,31 +76,30 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos/generate-qris', [PosController::class, 'generateQRIS'])->name('pos.generate-qris');
 
     // =============================================
-    // Stock Opname Routes
+    // STOCK (SEMUA ROLE BISA AKSES VIEW)
     // =============================================
-    Route::middleware(['auth', 'role:super-admin,admin'])->prefix('stock')->name('stock.')->group(function () {
-        // Stock Opname Routes
-        Route::resource('opname', StockOpnameController::class);
+    Route::prefix('stock')->name('stock.')->group(function () {
+
+        // ✅ SEMUA ROLE (termasuk karyawan)
+        Route::get('opname', [StockOpnameController::class, 'index'])->name('opname.index');
+        Route::get('opname/{id}', [StockOpnameController::class, 'show'])->name('opname.show');
         Route::get('opname/{id}/print', [StockOpnameController::class, 'printBeritaAcara'])->name('opname.print');
         Route::get('opname/{id}/export', [StockOpnameController::class, 'export'])->name('opname.export');
 
-        // Stock Card (Kartu Persediaan)
-        Route::get('card', [StockCardController::class, 'index'])->name('card.index');
-        Route::get('card/{sparepart}', [StockCardController::class, 'show'])->name('card.show');
-
-        // Purchase Receipt (Bukti Barang Masuk)
-        Route::resource('purchase', PurchaseReceiptController::class);
-        Route::post('purchase/{purchaseReceipt}/attachment', [PurchaseReceiptController::class, 'uploadAttachment'])->name('purchase.attachment');
-
-        // Stock Adjustment (Penyesuaian Stok)
-        Route::resource('adjustment', StockAdjustmentController::class);
-
-        // Supplier
-        Route::resource('supplier', SupplierController::class);
+        // ❌ KHUSUS ADMIN
+        Route::middleware(['role:super-admin,admin'])->group(function () {
+            Route::get('opname/create', [StockOpnameController::class, 'create'])->name('opname.create');
+            Route::post('opname', [StockOpnameController::class, 'store'])->name('opname.store');
+            Route::get('opname/{id}/edit', [StockOpnameController::class, 'edit'])->name('opname.edit');
+            Route::put('opname/{id}', [StockOpnameController::class, 'update'])->name('opname.update');
+            Route::delete('opname/{id}', [StockOpnameController::class, 'destroy'])->name('opname.destroy');
+        });
     });
 
-    // Reports / Laporan Routes
-    Route::middleware(['auth', 'role:super-admin,admin'])->prefix('reports')->name('reports.')->group(function () {
+    // =============================================
+    // REPORTS (SEMUA ROLE BISA AKSES)
+    // =============================================
+    Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/stock-card', [ReportController::class, 'stockCard'])->name('stock-card');
         Route::get('/mutation', [ReportController::class, 'mutation'])->name('mutation');

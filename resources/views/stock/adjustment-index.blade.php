@@ -122,7 +122,3 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/stock.css') }}">
 @endpush
-
-@push('scripts')
-<script src="{{ asset('assets/js/stock.js') }}"></script>
-@endpush

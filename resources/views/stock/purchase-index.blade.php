@@ -92,8 +92,6 @@
 <link rel="stylesheet" href="{{ asset('assets/css/stock.css') }}">
 @endpush
 
-@push('scripts')
-<script src="{{ asset('assets/js/stock.js') }}"></script>
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -106,18 +104,15 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Apakah Anda yakin ingin menghapus bukti barang masuk <strong id="deleteItemName"></strong>?</p>
+                <p>Apakah Anda yakin ingin menghapus stock opname <strong id="deleteItemName"></strong>?</p>
                 <p class="text-muted small mb-0">Tindakan ini tidak dapat dibatalkan.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-gold" data-bs-dismiss="modal">Batal</button>
-                <form id="deleteForm" method="POST">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">Hapus</button>
-                </form>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash-alt me-1"></i> Hapus
+                </button>
             </div>
         </div>
     </div>
 </div>
-@endpush

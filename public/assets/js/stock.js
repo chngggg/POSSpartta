@@ -16,21 +16,92 @@ function initDeleteHandler() {
     const deleteButtons = document.querySelectorAll(".delete-item");
     const deleteModal = document.getElementById("deleteModal");
 
-    if (deleteModal) {
-        const modal = new bootstrap.Modal(deleteModal);
+    console.log("Delete buttons found:", deleteButtons.length);
 
-        deleteButtons.forEach((btn) => {
-            btn.addEventListener("click", function () {
-                const id = this.dataset.id;
-                const name = this.dataset.name;
-                const form = document.getElementById("deleteForm");
+    if (!deleteModal) {
+        console.error("Delete modal not found");
+        return;
+    }
 
-                document.getElementById("deleteItemName").textContent = name;
-                form.action = `/stock/opname/${id}`;
+    const modal = new bootstrap.Modal(deleteModal);
+    const deleteItemName = document.getElementById("deleteItemName");
+    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
 
-                modal.show();
+    if (!confirmDeleteBtn) {
+        console.error("Confirm delete button not found");
+        return;
+    }
+
+    let currentDeleteId = null;
+
+    // Ketika tombol hapus diklik
+    deleteButtons.forEach((btn) => {
+        btn.removeEventListener("click", handleDeleteClick);
+        btn.addEventListener("click", handleDeleteClick);
+    });
+
+    function handleDeleteClick(e) {
+        e.preventDefault();
+        currentDeleteId = this.dataset.id;
+        const name = this.dataset.name;
+
+        console.log("Delete clicked - ID:", currentDeleteId, "Name:", name);
+
+        if (deleteItemName) {
+            deleteItemName.textContent = name;
+        }
+
+        modal.show();
+    }
+
+    // Ketika tombol konfirmasi hapus diklik
+    confirmDeleteBtn.removeEventListener("click", handleConfirmDelete);
+    confirmDeleteBtn.addEventListener("click", handleConfirmDelete);
+
+    async function handleConfirmDelete() {
+        if (!currentDeleteId) return;
+
+        // Disable button dan change text
+        confirmDeleteBtn.disabled = true;
+        confirmDeleteBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-1"></i> Menghapus...';
+
+        try {
+            const response = await fetch(`/stock/opname/${currentDeleteId}`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector(
+                        'meta[name="csrf-token"]',
+                    ).content,
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
             });
-        });
+
+            const data = await response.json();
+            console.log("Response:", data);
+
+            if (data.success) {
+                showToast(data.message, "success");
+                modal.hide();
+
+                // Auto reload setelah 1.5 detik
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showToast(data.message || "Gagal menghapus data", "error");
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.innerHTML =
+                    '<i class="fas fa-trash-alt me-1"></i> Hapus';
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            showToast("Terjadi kesalahan pada server", "error");
+            confirmDeleteBtn.disabled = false;
+            confirmDeleteBtn.innerHTML =
+                '<i class="fas fa-trash-alt me-1"></i> Hapus';
+        }
     }
 }
 

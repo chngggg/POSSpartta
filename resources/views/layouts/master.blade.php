@@ -253,6 +253,9 @@
     <script src="{{ asset('assets/js/pos.js') }}"></script>
     <!-- Users JS -->
     <script src="{{ asset('assets/js/users.js') }}"></script>
+
+    <!-- stock JS -->
+    <script src="{{ asset('assets/js/stock.js') }}"></script>
     @stack('scripts')
 
     <!-- Additional CSS for Global Notification -->
