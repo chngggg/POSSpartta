@@ -947,6 +947,8 @@ function showPaymentReceipt(transactionId, total, payment, change, method) {
 
     receiptModal.addEventListener("hidden.bs.modal", function () {
         receiptModal.remove();
+
+        location.reload();
     });
 }
 
