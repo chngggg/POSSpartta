@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
     initSidebarToggle();
     initTooltips();
     addLoadingAnimation();
+    loadTargetFromStorage();
 
     // Auto refresh stats every 60 seconds
     setInterval(function () {
@@ -16,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
             dashboard.updateStats();
         }
         refreshCharts();
+        refreshTargetData();
     }, 60000);
 });
 
@@ -337,6 +339,214 @@ function animateValue(elementId, endValue) {
     }, stepTime);
 }
 
+// =====================================================
+// TARGET PENJUALAN FUNCTIONS
+// =====================================================
+
+// Fungsi untuk membuka modal target
+window.openTargetModal = function () {
+    console.log("openTargetModal called");
+    const modalElement = document.getElementById("targetModal");
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } else {
+        console.error("Modal element not found!");
+    }
+};
+
+// Fungsi untuk update target
+window.updateTarget = async function () {
+    console.log("updateTarget called");
+    const targetInput = document.getElementById("targetSalesInput");
+    if (!targetInput) {
+        console.error("targetSalesInput not found");
+        return;
+    }
+
+    const targetValue = parseInt(targetInput.value);
+
+    if (isNaN(targetValue) || targetValue < 0) {
+        showToast("Masukkan target yang valid!", "error");
+        return;
+    }
+
+    // Tampilkan loading
+    const saveButton = document.querySelector("#targetModal .btn-gold");
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML =
+        '<i class="fas fa-spinner fa-spin me-2"></i> Menyimpan...';
+    saveButton.disabled = true;
+
+    try {
+        const response = await fetch("/dashboard/update-target", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document.querySelector(
+                    'meta[name="csrf-token"]',
+                ).content,
+            },
+            body: JSON.stringify({
+                target_sales: targetValue,
+            }),
+        });
+
+        const data = await response.json();
+        console.log("Response:", data);
+
+        if (data.success) {
+            // Update semua tampilan target di halaman
+            const formattedTarget = formatRupiah(targetValue);
+
+            // Update target display di card utama
+            const targetDisplay = document.getElementById("targetSalesDisplay");
+            if (targetDisplay) targetDisplay.innerText = formattedTarget;
+
+            // Update target label di card
+            const targetLabel = document.querySelector(
+                ".target-card .target-label",
+            );
+            if (targetLabel) {
+                targetLabel.innerText = `Target: ${formattedTarget}`;
+            }
+
+            // Update current target di modal
+            const currentTargetSpan = document.getElementById("currentTarget");
+            if (currentTargetSpan) {
+                currentTargetSpan.innerHTML = formattedTarget;
+            }
+
+            // Hitung ulang persentase
+            const monthlyTotalText = document.querySelector(
+                "#monthlyTotalDisplay, .target-card div:last-child strong",
+            );
+            let monthlyTotal = 0;
+
+            // Ambil monthly total dari berbagai kemungkinan source
+            if (data.monthly_total !== undefined) {
+                monthlyTotal = data.monthly_total;
+            } else {
+                const monthlyTotalElement = document.getElementById(
+                    "monthlyTotalDisplay",
+                );
+                if (monthlyTotalElement) {
+                    monthlyTotal =
+                        parseInt(
+                            monthlyTotalElement.innerText.replace(/\D/g, ""),
+                        ) || 0;
+                } else {
+                    const monthlyText = document.querySelector(
+                        ".target-card div:last-child strong",
+                    );
+                    if (monthlyText) {
+                        monthlyTotal =
+                            parseInt(
+                                monthlyText.innerText.replace(/\D/g, ""),
+                            ) || 0;
+                    }
+                }
+            }
+
+            // Update progress bar
+            const percentage =
+                monthlyTotal > 0
+                    ? Math.min((monthlyTotal / targetValue) * 100, 100)
+                    : 0;
+            const progressBar = document.querySelector(".progress-bar");
+            if (progressBar) {
+                progressBar.style.width = percentage + "%";
+                progressBar.setAttribute("aria-valuenow", percentage);
+            }
+
+            // Update persentase teks
+            const percentageText = document.querySelector(
+                ".target-card .mb-2 strong",
+            );
+            if (percentageText) {
+                percentageText.innerHTML = percentage.toFixed(1) + "%";
+            }
+
+            showToast(data.message || "Target berhasil diupdate!", "success");
+
+            // Tutup modal
+            const modalElement = document.getElementById("targetModal");
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) modal.hide();
+            }
+
+            // Refresh data dashboard
+            setTimeout(() => {
+                if (window.dashboard && window.dashboard.updateStats) {
+                    window.dashboard.updateStats();
+                }
+                if (window.refreshCharts) {
+                    window.refreshCharts();
+                }
+            }, 500);
+        } else {
+            showToast(data.message || "Gagal update target", "error");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        showToast("Terjadi kesalahan pada server: " + error.message, "error");
+    } finally {
+        // Reset button
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+    }
+};
+
+// Fungsi show toast notification
+function showToast(message, type = "success") {
+    const existingToasts = document.querySelectorAll(".toast-notification");
+    existingToasts.forEach((toast) => toast.remove());
+
+    const toast = document.createElement("div");
+    toast.className = `toast-notification toast-${type}`;
+    toast.innerHTML = `
+            <i class="fas ${type === "success" ? "fa-check-circle" : "fa-exclamation-circle"} me-2"></i>
+            ${message}
+        `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add("show"), 10);
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Period filter functionality
+document.querySelectorAll("[data-period]").forEach((btn) => {
+    btn.addEventListener("click", function () {
+        document.querySelectorAll("[data-period]").forEach((b) => {
+            b.classList.remove("active");
+        });
+        this.classList.add("active");
+
+        const period = this.getAttribute("data-period");
+        console.log("Switch to period:", period);
+
+        fetch(`/api/dashboard/stats?period=${period}`)
+            .then((response) => response.json())
+            .then((data) => {
+                if (window.salesChart) {
+                    window.salesChart.data.datasets[0].data =
+                        data.sales_data || [];
+                    window.salesChart.update();
+                }
+                if (window.categoryChart) {
+                    window.categoryChart.data.datasets[0].data =
+                        data.category_values || [];
+                    window.categoryChart.update();
+                }
+            })
+            .catch((error) => console.error("Error:", error));
+    });
+});
+
 /**
  * Format Rupiah
  */
@@ -348,5 +558,8 @@ function formatRupiah(amount) {
 window.dashboard = {
     updateStats: updateDashboardStats,
     refreshCharts: refreshCharts,
+    refreshTargetData: refreshTargetData,
     formatRupiah: formatRupiah,
+    updateTarget: window.updateTarget,
+    openTargetModal: window.openTargetModal,
 };

@@ -132,51 +132,6 @@
         </div>
     </div>
 
-    <!-- Modal Edit Target -->
-    <div class="modal fade" id="targetModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content custom-modal">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-edit me-2"></i>
-                        Edit Target Penjualan Bulanan
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="targetSalesInput">
-                            <i class="fas fa-money-bill-wave me-1"></i>
-                            Target Penjualan (Rp)
-                        </label>
-                        <input type="number"
-                            class="form-control"
-                            id="targetSalesInput"
-                            placeholder="Masukkan target penjualan"
-                            value="{{ $targetSales ?? 3000000 }}"
-                            step="100000">
-                        <small class="text-muted">Target penjualan untuk bulan ini</small>
-                    </div>
-                    <div class="info-box mt-3" style="background: #0a0a0a; border-radius: 12px; padding: 12px;">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Target saat ini:</span>
-                            <strong id="currentTarget">Rp {{ number_format($targetSales ?? 3000000, 0, ',', '.') }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Pencapaian bulan ini:</span>
-                            <strong style="color: #2ecc71;">Rp {{ number_format($monthlyTotal ?? 0, 0, ',', '.') }}</strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-gold" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-gold" onclick="updateTarget()">
-                        <i class="fas fa-save me-2"></i> Simpan Target
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Right Column -->
     <div class="col-lg-8">
@@ -251,167 +206,162 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-    // Data dari server untuk grafik
-    window.salesChartData = @json($salesData ?? []);
-    window.salesChartLabels = @json($labels ?? []);
-    window.categoryChartLabels = @json($categoryLabels ?? []);
-    window.categoryChartValues = @json($categoryValues ?? []);
+<!-- Modal Edit Target Penjualan -->
+<div class="modal fade" id="targetModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-dark">
 
-    // =====================================================
-    // TARGET PENJUALAN FUNCTIONS
-    // =====================================================
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-bullseye me-2"></i>
+                    Target Penjualan Bulanan
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
 
-    // Fungsi untuk membuka modal target
-    window.openTargetModal = function() {
-        console.log('openTargetModal called');
-        const modalElement = document.getElementById('targetModal');
-        if (modalElement) {
-            const modal = new bootstrap.Modal(modalElement);
-            modal.show();
-        } else {
-            console.error('Modal element not found!');
-        }
-    };
+            <!-- Body -->
+            <div class="modal-body">
 
-    // Fungsi untuk update target
-    window.updateTarget = async function() {
-        console.log('updateTarget called');
-        const targetInput = document.getElementById('targetSalesInput');
-        if (!targetInput) {
-            console.error('targetSalesInput not found');
-            return;
-        }
+                <label class="form-label">
+                    <i class="fas fa-money-bill-wave me-1"></i>
+                    Target Penjualan (Rp)
+                </label>
 
-        const targetValue = parseInt(targetInput.value);
+                <div class="input-group custom-input">
+                    <span class="input-group-text">Rp</span>
+                    <input type="number"
+                        class="form-control"
+                        id="targetSalesInput"
+                        value="{{ $targetSales ?? 3000000 }}"
+                        step="100000">
+                </div>
 
-        if (isNaN(targetValue) || targetValue < 0) {
-            showToast('Masukkan target yang valid!', 'error');
-            return;
-        }
+                <small class="text-muted">
+                    Target penjualan untuk bulan ini
+                </small>
 
-        try {
-            const response = await fetch('/dashboard/update-target', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({
-                    target_sales: targetValue
-                })
-            });
+                <!-- Info -->
+                <div class="info-box mt-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Target saat ini:</span>
+                        <strong class="text-gold">
+                            Rp {{ number_format($targetSales ?? 3000000, 0, ',', '.') }}
+                        </strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Pencapaian bulan ini:</span>
+                        <strong class="text-success">
+                            Rp {{ number_format($monthlyTotal ?? 0, 0, ',', '.') }}
+                        </strong>
+                    </div>
+                </div>
 
-            const data = await response.json();
-            console.log('Response:', data);
+            </div>
 
-            if (data.success) {
-                // Update tampilan target
-                const formattedTarget = formatRupiah(targetValue);
-                const targetDisplay = document.getElementById('targetSalesDisplay');
-                if (targetDisplay) targetDisplay.innerText = formattedTarget;
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-gold" data-bs-dismiss="modal">
+                    Batal
+                </button>
+                <button type="button" class="btn btn-gold" onclick="updateTarget()">
+                    <i class="fas fa-save me-2"></i> Simpan
+                </button>
+            </div>
 
-                // Update target label di card
-                const targetLabel = document.querySelector('.target-card .target-label');
-                if (targetLabel) {
-                    targetLabel.innerText = `Target: ${formattedTarget}`;
-                }
+        </div>
+    </div>
+</div>
 
-                // Update current target di modal
-                const currentTargetSpan = document.getElementById('currentTarget');
-                if (currentTargetSpan) {
-                    currentTargetSpan.innerHTML = formattedTarget;
-                }
-
-                // Update progress bar - PERBAIKAN INI
-                const monthlyTotal = {
-                    {
-                        $monthlyTotal ?? 0
-                    }
-                };
-                const percentage = monthlyTotal > 0 ? Math.min((monthlyTotal / targetValue) * 100, 100) : 0;
-                const progressBar = document.querySelector('.progress-bar');
-                if (progressBar) {
-                    progressBar.style.width = percentage + '%';
-                    progressBar.setAttribute('aria-valuenow', percentage);
-                }
-
-                // Update persentase teks
-                const percentageText = document.querySelector('.target-card .mb-2 strong');
-                if (percentageText) {
-                    percentageText.innerHTML = percentage.toFixed(1) + '%';
-                }
-
-                showToast(data.message, 'success');
-
-                // Tutup modal
-                const modalElement = document.getElementById('targetModal');
-                if (modalElement) {
-                    const modal = bootstrap.Modal.getInstance(modalElement);
-                    if (modal) modal.hide();
-                }
-            } else {
-                showToast(data.message || 'Gagal update target', 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showToast('Terjadi kesalahan pada server', 'error');
-        }
-    };
-
-    // Fungsi format Rupiah
-    function formatRupiah(amount) {
-        return 'Rp ' + amount.toLocaleString('id-ID');
+<!-- CSS KHUSUS MODAL -->
+<style>
+    /* Modal utama */
+    .modal-dark {
+        background: linear-gradient(145deg, #0b0b0b, #121212);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 215, 0, 0.15);
+        color: #fff;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
     }
 
-    // Fungsi show toast notification
-    function showToast(message, type = 'success') {
-        const existingToasts = document.querySelectorAll('.toast-notification');
-        existingToasts.forEach(toast => toast.remove());
-
-        const toast = document.createElement('div');
-        toast.className = `toast-notification toast-${type}`;
-        toast.innerHTML = `
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
-            ${message}
-        `;
-        document.body.appendChild(toast);
-
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+    /* Header */
+    .modal-dark .modal-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
-</script>
 
-<script>
-    // Period filter functionality
-    document.querySelectorAll('[data-period]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('[data-period]').forEach(b => {
-                b.classList.remove('active');
-            });
-            this.classList.add('active');
+    .modal-dark .modal-title {
+        color: var(--gold);
+        font-weight: 600;
+    }
 
-            const period = this.getAttribute('data-period');
-            console.log('Switch to period:', period);
+    /* Body */
+    .modal-dark .modal-body {
+        color: #ddd;
+    }
 
-            fetch(`/api/dashboard/stats?period=${period}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (window.salesChart) {
-                        window.salesChart.data.datasets[0].data = data.sales_data || [];
-                        window.salesChart.update();
-                    }
-                    if (window.categoryChart) {
-                        window.categoryChart.data.datasets[0].data = data.category_values || [];
-                        window.categoryChart.update();
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        });
-    });
-</script>
-@endpush
+    /* Input */
+    .custom-input .input-group-text {
+        background: #111;
+        border: 1px solid #222;
+        color: var(--gold);
+    }
+
+    .custom-input .form-control {
+        background: #0a0a0a;
+        border: 1px solid #222;
+        color: #fff;
+    }
+
+    .custom-input .form-control:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 0.15rem rgba(255, 215, 0, 0.2);
+    }
+
+    /* Info box */
+    .info-box {
+        background: #0a0a0a;
+        border-radius: 12px;
+        padding: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Gold text */
+    .text-gold {
+        color: var(--gold);
+    }
+
+    /* Buttons */
+    .btn-gold {
+        background: var(--gold);
+        border: none;
+        color: #000;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+    .btn-gold:hover {
+        background: #e6c200;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-gold {
+        border: 1px solid var(--gold);
+        color: var(--gold);
+    }
+
+    .btn-outline-gold:hover {
+        background: var(--gold);
+        color: #000;
+    }
+
+    /* Footer */
+    .modal-dark .modal-footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Backdrop biar elegan */
+    .modal-backdrop.show {
+        opacity: 0.85;
+        backdrop-filter: blur(4px);
+    }
+</style>

@@ -13,41 +13,32 @@ document.addEventListener("DOMContentLoaded", function () {
  * Initialize delete sparepart functionality
  */
 function initDeleteSparepart() {
-    // Cek apakah modal ada
     const deleteModalElement = document.getElementById("deleteModal");
     if (!deleteModalElement) {
         console.error("Delete modal element not found!");
         return;
     }
 
-    // Inisialisasi modal Bootstrap
     let deleteModal;
     try {
         deleteModal = new bootstrap.Modal(deleteModalElement);
-        console.log("Modal initialized successfully");
     } catch (e) {
         console.error("Failed to initialize modal:", e);
         return;
     }
 
-    // Dapatkan semua tombol hapus
     const deleteButtons = document.querySelectorAll(".delete-sparepart");
-    console.log("Delete buttons found:", deleteButtons.length);
 
     if (deleteButtons.length === 0) {
-        console.warn("No delete buttons found with class .delete-sparepart");
+        console.warn("No delete buttons found");
         return;
     }
 
-    // Tambahkan event listener ke setiap tombol hapus
-    deleteButtons.forEach((btn, index) => {
-        // Hapus event listener lama jika ada (untuk menghindari duplikasi)
+    deleteButtons.forEach((btn) => {
         btn.removeEventListener("click", handleDeleteClick);
-        // Tambahkan event listener baru
         btn.addEventListener("click", handleDeleteClick);
     });
 
-    // Handler function untuk tombol hapus
     function handleDeleteClick(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -55,17 +46,11 @@ function initDeleteSparepart() {
         const sparepartId = this.getAttribute("data-id");
         const sparepartName = this.getAttribute("data-name");
 
-        console.log(
-            `Delete button clicked - ID: ${sparepartId}, Name: ${sparepartName}`,
-        );
-
         if (!sparepartId) {
-            console.error("Missing data-id attribute");
             showToast("Error: ID sparepart tidak ditemukan", "error");
             return;
         }
 
-        // Update modal content
         const nameSpan = document.getElementById("deleteSparepartName");
         const deleteForm = document.getElementById("deleteForm");
 
@@ -74,18 +59,46 @@ function initDeleteSparepart() {
         }
 
         if (deleteForm) {
-            const actionUrl = `/spareparts/${sparepartId}`;
-            deleteForm.setAttribute("action", actionUrl);
-            console.log("Form action set to:", actionUrl);
+            deleteForm.setAttribute("action", `/spareparts/${sparepartId}`);
         } else {
-            console.error("Delete form not found!");
             showToast("Error: Form tidak ditemukan", "error");
             return;
         }
 
-        // Tampilkan modal
         deleteModal.show();
     }
+
+    // =========================
+    // 🔄 AUTO RELOAD LOGIC
+    // =========================
+
+    let isSubmitting = false;
+
+    const deleteForm = document.getElementById("deleteForm");
+
+    if (deleteForm) {
+        deleteForm.addEventListener("submit", function () {
+            isSubmitting = true;
+
+            const btn = document.getElementById("confirmDeleteBtn");
+            if (btn) {
+                btn.innerHTML = "Menghapus...";
+                btn.disabled = true;
+            }
+
+            // fallback reload (kalau tidak redirect dari Laravel)
+            setTimeout(() => {
+                location.reload();
+            }, 800);
+        });
+    }
+
+    // reload hanya jika modal ditutup tanpa submit (Batal)
+    deleteModalElement.addEventListener("hidden.bs.modal", function () {
+        if (!isSubmitting) {
+            location.reload();
+        }
+    });
 }
 
 /**

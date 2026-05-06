@@ -156,68 +156,12 @@
         @endif
     </div>
 </div>
-
-
 @endsection
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/category.css') }}">
 @endpush
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Search functionality
-        const searchInput = document.getElementById('searchCategory');
-        if (searchInput) {
-            let searchTimeout;
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    const keyword = this.value;
-                    const currentUrl = new URL(window.location.href);
-                    if (keyword) {
-                        currentUrl.searchParams.set('search', keyword);
-                    } else {
-                        currentUrl.searchParams.delete('search');
-                    }
-                    window.location.href = currentUrl.toString();
-                }, 500);
-            });
-        }
-
-        // Delete modal handling
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        const deleteButtons = document.querySelectorAll('.delete-category');
-        const warningMessage = document.getElementById('warningMessage');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-
-        deleteButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const categoryId = this.dataset.id;
-                const categoryName = this.dataset.name;
-                const hasSparepart = this.dataset.hasSparepart === 'true';
-
-                document.getElementById('deleteCategoryName').textContent = categoryName;
-                document.getElementById('deleteForm').action = `/categories/${categoryId}`;
-
-                if (hasSparepart) {
-                    warningMessage.style.display = 'block';
-                    confirmDeleteBtn.disabled = true;
-                    confirmDeleteBtn.style.opacity = '0.5';
-                    confirmDeleteBtn.style.cursor = 'not-allowed';
-                } else {
-                    warningMessage.style.display = 'none';
-                    confirmDeleteBtn.disabled = false;
-                    confirmDeleteBtn.style.opacity = '1';
-                    confirmDeleteBtn.style.cursor = 'pointer';
-                }
-
-                deleteModal.show();
-            });
-        });
-    });
-</script>
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -250,4 +194,3 @@
         </div>
     </div>
 </div>
-@endpush
