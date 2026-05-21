@@ -75,32 +75,23 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos/search-by-barcode', [PosController::class, 'getByBarcode'])->name('pos.search-by-barcode');
     Route::get('/pos/generate-qris', [PosController::class, 'generateQRIS'])->name('pos.generate-qris');
 
-    // =============================================
-    // STOCK (SEMUA ROLE BISA AKSES VIEW)
-    // =============================================
-    Route::prefix('stock')->name('stock.')->group(function () {
-
-        // ✅ SEMUA ROLE (termasuk karyawan)
-        Route::get('opname', [StockOpnameController::class, 'index'])->name('opname.index');
-        Route::get('opname/{id}', [StockOpnameController::class, 'show'])->name('opname.show');
-        Route::get('opname/{id}/print', [StockOpnameController::class, 'printBeritaAcara'])->name('opname.print');
-        Route::get('opname/{id}/export', [StockOpnameController::class, 'export'])->name('opname.export');
-
-        // ❌ KHUSUS ADMIN
-        Route::middleware(['role:super-admin,admin'])->group(function () {
-            Route::get('opname/create', [StockOpnameController::class, 'create'])->name('opname.create');
-            Route::post('opname', [StockOpnameController::class, 'store'])->name('opname.store');
-            Route::get('opname/{id}/edit', [StockOpnameController::class, 'edit'])->name('opname.edit');
-            Route::put('opname/{id}', [StockOpnameController::class, 'update'])->name('opname.update');
-            Route::delete('opname/{id}', [StockOpnameController::class, 'destroy'])->name('opname.destroy');
-        });
+    // Stock Opname Routes - SEDERHANA
+    Route::prefix('stock-opname')->name('stock-opname.')->middleware(['auth'])->group(function () {
+        Route::get('/', [StockOpnameController::class, 'index'])->name('index');
+        Route::get('/create', [StockOpnameController::class, 'create'])->name('create');
+        Route::post('/', [StockOpnameController::class, 'store'])->name('store');
+        Route::get('/{id}', [StockOpnameController::class, 'show'])->name('show');
+        Route::delete('/{id}', [StockOpnameController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/print', [StockOpnameController::class, 'print'])->name('print');
+        Route::get('/{id}/export', [StockOpnameController::class, 'exportExcel'])->name('export');
     });
 
     // =============================================
     // REPORTS (SEMUA ROLE BISA AKSES)
     // =============================================
-    Route::prefix('reports')->name('reports.')->group(function () {
+    Route::prefix('reports')->name('reports.')->middleware(['auth'])->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/transaction/{id}', [ReportController::class, 'transactionDetail'])->name('transaction-detail');
         Route::get('/stock-card', [ReportController::class, 'stockCard'])->name('stock-card');
         Route::get('/mutation', [ReportController::class, 'mutation'])->name('mutation');
         Route::get('/stock-opname', [ReportController::class, 'stockOpname'])->name('stock-opname');

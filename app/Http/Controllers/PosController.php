@@ -85,6 +85,7 @@ class PosController extends Controller
             'items' => 'required|array',
             'items.*.id' => 'required|exists:spareparts,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'items.*.price' => 'required|numeric|min:0',
             'total_amount' => 'required|numeric',
             'payment_amount' => 'required|numeric',
             'change_amount' => 'required|numeric',

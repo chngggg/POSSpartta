@@ -8,33 +8,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function initStockOpname() {
     initDeleteHandler();
-    initFormSubmit();
     initPhysicalStockInput();
+    initFormSubmit();
 }
 
+/**
+ * Initialize delete handler for stock opname
+ */
 function initDeleteHandler() {
     const deleteButtons = document.querySelectorAll(".delete-item");
     const deleteModal = document.getElementById("deleteModal");
 
-    console.log("Delete buttons found:", deleteButtons.length);
-
-    if (!deleteModal) {
-        console.error("Delete modal not found");
-        return;
-    }
+    if (!deleteModal || deleteButtons.length === 0) return;
 
     const modal = new bootstrap.Modal(deleteModal);
     const deleteItemName = document.getElementById("deleteItemName");
+    const deleteForm = document.getElementById("deleteForm");
     const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
 
-    if (!confirmDeleteBtn) {
-        console.error("Confirm delete button not found");
-        return;
-    }
+    if (!confirmDeleteBtn || !deleteForm) return;
 
     let currentDeleteId = null;
 
-    // Ketika tombol hapus diklik
     deleteButtons.forEach((btn) => {
         btn.removeEventListener("click", handleDeleteClick);
         btn.addEventListener("click", handleDeleteClick);
@@ -45,29 +40,29 @@ function initDeleteHandler() {
         currentDeleteId = this.dataset.id;
         const name = this.dataset.name;
 
-        console.log("Delete clicked - ID:", currentDeleteId, "Name:", name);
-
         if (deleteItemName) {
             deleteItemName.textContent = name;
+        }
+
+        if (deleteForm) {
+            deleteForm.action = `/stock-opname/${currentDeleteId}`;
         }
 
         modal.show();
     }
 
-    // Ketika tombol konfirmasi hapus diklik
     confirmDeleteBtn.removeEventListener("click", handleConfirmDelete);
     confirmDeleteBtn.addEventListener("click", handleConfirmDelete);
 
     async function handleConfirmDelete() {
         if (!currentDeleteId) return;
 
-        // Disable button dan change text
         confirmDeleteBtn.disabled = true;
         confirmDeleteBtn.innerHTML =
             '<i class="fas fa-spinner fa-spin me-1"></i> Menghapus...';
 
         try {
-            const response = await fetch(`/stock/opname/${currentDeleteId}`, {
+            const response = await fetch(`/stock-opname/${currentDeleteId}`, {
                 method: "DELETE",
                 headers: {
                     "X-CSRF-TOKEN": document.querySelector(
@@ -79,13 +74,10 @@ function initDeleteHandler() {
             });
 
             const data = await response.json();
-            console.log("Response:", data);
 
             if (data.success) {
                 showToast(data.message, "success");
                 modal.hide();
-
-                // Auto reload setelah 1.5 detik
                 setTimeout(() => {
                     window.location.reload();
                 }, 1500);
@@ -105,58 +97,86 @@ function initDeleteHandler() {
     }
 }
 
+/**
+ * Initialize physical stock input with auto-calculate difference
+ */
+function initPhysicalStockInput() {
+    const inputs = document.querySelectorAll(".physical-stock");
+
+    inputs.forEach((input) => {
+        input.addEventListener("input", function () {
+            const systemStock = parseInt(this.dataset.system) || 0;
+            const physicalStock = parseInt(this.value) || 0;
+            const difference = physicalStock - systemStock;
+
+            const row = this.closest("tr");
+            const diffCell = row ? row.querySelector(".diff-cell") : null;
+
+            if (diffCell) {
+                diffCell.textContent =
+                    difference >= 0 ? `+${difference}` : `${difference}`;
+                diffCell.className = `diff-cell ${difference > 0 ? "diff-up" : difference < 0 ? "diff-down" : "diff-zero"}`;
+            }
+        });
+    });
+}
+
+/**
+ * Initialize form submit validation
+ */
 function initFormSubmit() {
     const form = document.getElementById("stockOpnameForm");
     if (!form) return;
 
     form.addEventListener("submit", function (e) {
-        const items = document.querySelectorAll(".physical-stock-input");
-        let hasError = false;
+        const submitter = e.submitter;
+        const status = submitter ? submitter.value : null;
 
-        items.forEach((input) => {
-            const value = parseInt(input.value);
-            if (isNaN(value) || value < 0) {
+        if (status === "draft") {
+            return true;
+        }
+
+        // Finalisasi: validate all physical stock inputs
+        const inputs = document.querySelectorAll(".physical-stock");
+        let hasEmpty = false;
+
+        inputs.forEach((input) => {
+            const val = parseInt(input.value);
+            if (isNaN(val)) {
+                hasEmpty = true;
                 input.classList.add("is-invalid");
-                hasError = true;
             } else {
                 input.classList.remove("is-invalid");
             }
         });
 
-        if (hasError) {
+        if (hasEmpty) {
             e.preventDefault();
-            showToast("Mohon isi semua stok fisik dengan benar", "error");
+            showToast(
+                "Mohon isi semua stok fisik sebelum finalisasi!",
+                "error",
+            );
         }
     });
 }
 
-function initPhysicalStockInput() {
-    const inputs = document.querySelectorAll(".physical-stock-input");
-
-    inputs.forEach((input) => {
-        input.addEventListener("change", function () {
-            const systemStock = parseInt(this.dataset.systemStock);
-            const physicalStock = parseInt(this.value) || 0;
-            const difference = physicalStock - systemStock;
-            const diffElement =
-                this.closest(".item-row")?.querySelector(".difference-value");
-
-            if (diffElement) {
-                diffElement.textContent = formatNumber(difference);
-                diffElement.className = `difference-value ${difference >= 0 ? "diff-up" : "diff-down"}`;
-            }
-        });
-    });
-}
-
+/**
+ * Format number with thousand separator
+ */
 function formatNumber(num) {
     return num.toLocaleString("id-ID");
 }
 
+/**
+ * Format currency to Rupiah
+ */
 function formatRupiah(amount) {
     return "Rp " + amount.toLocaleString("id-ID");
 }
 
+/**
+ * Show toast notification
+ */
 function showToast(message, type = "success") {
     const existingToasts = document.querySelectorAll(".toast-notification");
     existingToasts.forEach((toast) => toast.remove());
@@ -176,9 +196,9 @@ function showToast(message, type = "success") {
     }, 3000);
 }
 
-// Export functions
+// Export functions for global access
 window.stock = {
-    showToast,
-    formatRupiah,
-    formatNumber,
+    showToast: showToast,
+    formatRupiah: formatRupiah,
+    formatNumber: formatNumber,
 };

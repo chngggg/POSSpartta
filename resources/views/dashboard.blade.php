@@ -122,7 +122,7 @@
             </h6>
             <p class="text-muted small mb-3">Stock opname via barcode scanner</p>
             <div class="d-grid">
-                <a href="{{ route('stock.opname.index') }}" class="btn btn-outline-gold">
+                <a href="{{ route('stock-opname.index') }}" class="btn btn-outline-gold">
                     <i class="fas fa-camera me-2"></i>Scan Barcode
                 </a>
             </div>
@@ -138,14 +138,14 @@
         <!-- Sales Chart -->
         <div class="chart-container mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h6 class="mb-0">
+                <h6 class="mb-0" id="chartTitle">
                     <i class="fas fa-chart-line me-2"></i>
-                    Grafik Penjualan 7 Hari Terakhir
+                    Grafik Penjualan (7 Hari Terakhir)
                 </h6>
                 <div class="btn-group btn-group-sm" role="group">
-                    <button type="button" class="btn btn-outline-gold active" data-period="week">Minggu</button>
-                    <button type="button" class="btn btn-outline-gold" data-period="month">Bulan</button>
-                    <button type="button" class="btn btn-outline-gold" data-period="year">Tahun</button>
+                    <button type="button" class="btn btn-outline-gold active" data-period="week" data-title="Grafik Penjualan (7 Hari Terakhir)">Minggu</button>
+                    <button type="button" class="btn btn-outline-gold" data-period="month" data-title="Grafik Penjualan (Per Minggu - Bulan Ini)">Bulan</button>
+                    <button type="button" class="btn btn-outline-gold" data-period="year" data-title="Grafik Penjualan (Per Bulan - Tahun Ini)">Tahun</button>
                 </div>
             </div>
             <canvas id="salesChart" height="280"></canvas>
@@ -365,3 +365,18 @@
         backdrop-filter: blur(4px);
     }
 </style>
+
+@push('scripts')
+<script>
+    // Data dari server untuk grafik
+    window.salesChartData = @json($salesData ?? []);
+    window.salesChartLabels = @json($labels ?? []);
+    window.categoryChartLabels = @json($categoryLabels ?? []);
+    window.categoryChartValues = @json($categoryValues ?? []);
+
+    console.log('Sales Data:', window.salesChartData);
+    console.log('Sales Labels:', window.salesChartLabels);
+    console.log('Category Labels:', window.categoryChartLabels);
+    console.log('Category Values:', window.categoryChartValues);
+</script>
+@endpush

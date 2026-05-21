@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Sparepart;
 use App\Models\StockOpname;
 use App\Models\StockOpnameItem;
-use App\Models\StockCard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -13,19 +12,19 @@ class StockOpnameController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:super-admin,admin,']);
+        $this->middleware('auth');
     }
 
     public function index()
     {
         $stockOpnames = StockOpname::with('creator')->orderBy('created_at', 'desc')->paginate(10);
-        return view('stock.opname-index', compact('stockOpnames'));
+        return view('stock-opname.index', compact('stockOpnames'));
     }
 
     public function create()
     {
-        $spareparts = Sparepart::with('category')->get();
-        return view('stock.opname-create', compact('spareparts'));
+        $spareparts = Sparepart::orderBy('name')->get();
+        return view('stock-opname.create', compact('spareparts'));
     }
 
     public function store(Request $request)
@@ -41,13 +40,14 @@ class StockOpnameController extends Controller
             DB::beginTransaction();
 
             $opnameNumber = StockOpname::generateNumber();
+            $status = $request->input('status', 'draft');
 
             $stockOpname = StockOpname::create([
                 'opname_number' => $opnameNumber,
                 'opname_date' => now(),
                 'period' => $request->period,
                 'created_by' => auth()->id(),
-                'status' => 'completed',
+                'status' => $status,
                 'notes' => $request->notes
             ]);
 
@@ -64,100 +64,89 @@ class StockOpnameController extends Controller
                     'physical_stock' => $physicalStock,
                     'difference' => $difference,
                     'notes' => $item['notes'] ?? null,
-                    'is_counted' => true
                 ]);
 
-                // Update actual stock if there's difference
-                if ($difference != 0) {
+                // Update stok jika finalisasi
+                if ($status === 'completed') {
                     $sparepart->update(['stock' => $physicalStock]);
-
-                    // Record to stock card
-                    StockCard::record(
-                        $sparepart->id,
-                        'adjustment',
-                        abs($difference),
-                        "Penyesuaian stok dari stock opname {$opnameNumber}",
-                        $stockOpname->id
-                    );
                 }
             }
 
             DB::commit();
 
-            return redirect()->route('stock.opname.index')
-                ->with('success', 'Stock opname berhasil disimpan!');
+            $message = $status === 'draft'
+                ? 'Stock opname disimpan sebagai Draft!'
+                : 'Stock opname selesai! Stok telah diperbarui.';
+
+            return redirect()->route('stock-opname.index')->with('success', $message);
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
 
     public function show($id)
     {
-        $stockOpname = StockOpname::with('items.sparepart', 'creator')->find($id);
-
-        if (!$stockOpname) {
-            return redirect()->route('stock.opname.index')
-                ->with('error', 'Data stock opname tidak ditemukan!');
-        }
-
-        return view('stock.opname-show', compact('stockOpname'));
+        $stockOpname = StockOpname::with('items.sparepart', 'creator')->findOrFail($id);
+        return view('stock-opname.show', compact('stockOpname'));
     }
 
     public function destroy($id)
     {
         try {
-            $stockOpname = StockOpname::find($id);
-
-            if (!$stockOpname) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data stock opname tidak ditemukan!'
-                ], 404);
-            }
-
+            $stockOpname = StockOpname::findOrFail($id);
             $stockOpname->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Stock opname berhasil dihapus!'
-            ]);
+            return redirect()->route('stock-opname.index')
+                ->with('success', 'Stock opname berhasil dihapus!');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
         }
     }
 
-    public function export($id)
+    public function print($id)
+    {
+        $stockOpname = StockOpname::with('items.sparepart', 'creator')->findOrFail($id);
+        return view('stock-opname.print', compact('stockOpname'));
+    }
+
+    /**
+     * Export stock opname to Excel/CSV
+     */
+    public function exportExcel($id)
     {
         $stockOpname = StockOpname::with('items.sparepart')->findOrFail($id);
 
-        // Prepare data for export
-        $data = [];
-        $data[] = ['No.', 'Kode', 'Nama Sparepart', 'Stok Sistem', 'Stok Fisik', 'Selisih', 'Status'];
-
-        foreach ($stockOpname->items as $index => $item) {
-            $status = $item->difference == 0 ? 'Sesuai' : ($item->difference > 0 ? 'Kelebihan' : 'Kekurangan');
-            $data[] = [
-                $index + 1,
-                $item->sparepart->code,
-                $item->sparepart->name,
-                $item->system_stock . ' pcs',
-                $item->physical_stock . ' pcs',
-                ($item->difference >= 0 ? '+' : '') . $item->difference . ' pcs',
-                $status
-            ];
-        }
-
-        // Generate CSV
+        // Prepare data for CSV
         $filename = 'stock-opname-' . $stockOpname->opname_number . '.csv';
         $handle = fopen('php://temp', 'w+');
 
-        foreach ($data as $row) {
-            fputcsv($handle, $row);
+        // Add headers (UTF-8 BOM for Excel compatibility)
+        fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        // Header row
+        fputcsv($handle, [
+            'No',
+            'Kode',
+            'Nama Barang',
+            'Stok Sistem (pcs)',
+            'Stok Fisik (pcs)',
+            'Selisih (pcs)',
+            'Status'
+        ]);
+
+        // Data rows
+        foreach ($stockOpname->items as $index => $item) {
+            $status = $item->difference == 0 ? 'Sesuai' : ($item->difference > 0 ? 'Kelebihan' : 'Kekurangan');
+            fputcsv($handle, [
+                $index + 1,
+                $item->sparepart->code,
+                $item->sparepart->name,
+                $item->system_stock,
+                $item->physical_stock,
+                ($item->difference >= 0 ? '+' : '') . $item->difference,
+                $status
+            ]);
         }
 
         rewind($handle);
@@ -165,14 +154,8 @@ class StockOpnameController extends Controller
         fclose($handle);
 
         return response($content, 200, [
-            'Content-Type' => 'text/csv',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
-    }
-
-    public function printBeritaAcara($id)
-    {
-        $stockOpname = StockOpname::with('items.sparepart', 'creator')->findOrFail($id);
-        return view('stock.opname-print', compact('stockOpname'));
     }
 }

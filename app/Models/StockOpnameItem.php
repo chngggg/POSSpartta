@@ -13,12 +13,7 @@ class StockOpnameItem extends Model
         'system_stock',
         'physical_stock',
         'difference',
-        'notes',
-        'is_counted'
-    ];
-
-    protected $casts = [
-        'is_counted' => 'boolean',
+        'notes'
     ];
 
     public function stockOpname(): BelongsTo

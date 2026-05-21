@@ -178,7 +178,7 @@ function updateCartDisplay() {
             <div class="empty-cart">
                 <i class="fas fa-shopping-cart"></i>
                 <p>Keranjang kosong</p>
-                <small class="text-muted">Klik produk di sebelah kiri</small>
+                <small class="text-muted">Klik produk di sebelah kiri atau scan barcode</small>
             </div>
         `;
         if (subtotalElement) subtotalElement.textContent = "Rp 0";
@@ -195,14 +195,20 @@ function updateCartDisplay() {
         subtotal += itemTotal;
 
         html += `
-            <div class="cart-item">
+            <div class="cart-item" data-id="${item.id}">
                 <div class="cart-item-info">
                     <div class="cart-item-name">${escapeHtml(item.name)}</div>
                     <div class="cart-item-price">${formatRupiah(item.price)}</div>
                 </div>
                 <div class="cart-item-quantity">
                     <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
-                    <span class="quantity-value">${item.quantity}</span>
+                    <input type="number" 
+                           class="quantity-input" 
+                           value="${item.quantity}" 
+                           min="1" 
+                           max="${item.stock}"
+                           data-id="${item.id}"
+                           onchange="updateQuantityByInput(this)">
                     <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
                 </div>
                 <div class="cart-item-subtotal">${formatRupiah(itemTotal)}</div>
@@ -222,6 +228,32 @@ function updateCartDisplay() {
             (sum, item) => sum + item.quantity,
             0,
         );
+}
+
+function updateQuantityByInput(inputElement) {
+    const id = parseInt(inputElement.dataset.id);
+    const newQuantity = parseInt(inputElement.value);
+
+    if (isNaN(newQuantity) || newQuantity < 1) {
+        inputElement.value = 1;
+        updateQuantity(id, 1 - cart.find((item) => item.id === id)?.quantity);
+        return;
+    }
+
+    const item = cart.find((item) => item.id === id);
+    if (!item) return;
+
+    if (newQuantity > item.stock) {
+        showToast(
+            `Stok ${item.name} tidak mencukupi (maksimal ${item.stock})`,
+            "error",
+        );
+        inputElement.value = item.quantity;
+        return;
+    }
+
+    const delta = newQuantity - item.quantity;
+    updateQuantity(id, delta);
 }
 
 function filterProducts(keyword) {
@@ -692,6 +724,7 @@ function processTransactionData(total, paymentAmount, change, method, bank) {
         items: cart.map((item) => ({
             id: item.id,
             quantity: item.quantity,
+            price: item.price,
         })),
         total_amount: total,
         payment_amount: paymentAmount,

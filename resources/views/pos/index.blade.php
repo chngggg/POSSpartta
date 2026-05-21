@@ -7,7 +7,12 @@
     <!-- LEFT PANEL - Products -->
     <div class="pos-products">
         <div class="products-header">
-            <h5><i class="fas fa-barcode"></i> Scan Barcode</h5>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-barcode"></i> Scan Barcode</h5>
+                <a href="{{ route('reports.index') }}" class="btn btn-outline-gold btn-sm">
+                    <i class="fas fa-history me-1"></i> History Transaksi
+                </a>
+            </div>
             <div class="barcode-scanner">
                 <input type="text" id="barcodeInput" placeholder="Scan atau ketik barcode..." autofocus>
                 <button onclick="addProductByBarcode(document.getElementById('barcodeInput').value)">
@@ -42,14 +47,7 @@
                 data-name="{{ $sparepart->name }}"
                 data-price="{{ $sparepart->selling_price }}"
                 data-stock="{{ $sparepart->stock }}"
-                data-category="{{ $sparepart->category_id }}"
-                onclick="addToCart({
-                     id: {{ $sparepart->id }},
-                     code: '{{ $sparepart->code }}',
-                     name: '{{ $sparepart->name }}',
-                     selling_price: {{ $sparepart->selling_price }},
-                     stock: {{ $sparepart->stock }}
-                 })">
+                data-category="{{ $sparepart->category_id }}">
                 <div class="product-code">{{ $sparepart->code }}</div>
                 <div class="product-name">{{ $sparepart->name }}</div>
                 <div class="product-price">Rp {{ number_format($sparepart->selling_price, 0, ',', '.') }}</div>

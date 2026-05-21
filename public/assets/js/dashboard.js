@@ -2,22 +2,24 @@
 // SPARTTAPOS DASHBOARD - MODERN DARK THEME
 // =====================================================
 
+let salesChart = null;
+let categoryChart = null;
+
 // Wait for DOM to be fully loaded
 document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM Loaded - Initializing Dashboard");
+
+    // Inisialisasi chart
     initSalesChart();
     initCategoryChart();
     initSidebarToggle();
     initTooltips();
     addLoadingAnimation();
-    loadTargetFromStorage();
+    initPeriodFilter();
 
     // Auto refresh stats every 60 seconds
     setInterval(function () {
-        if (typeof dashboard !== "undefined" && dashboard.updateStats) {
-            dashboard.updateStats();
-        }
-        refreshCharts();
-        refreshTargetData();
+        refreshDashboardData();
     }, 60000);
 });
 
@@ -25,8 +27,17 @@ document.addEventListener("DOMContentLoaded", function () {
  * Sales Chart - 7 Days Sales Trend with Real Data
  */
 function initSalesChart() {
-    const ctx = document.getElementById("salesChart");
-    if (!ctx) return;
+    const canvas = document.getElementById("salesChart");
+    if (!canvas) {
+        console.error("salesChart canvas not found!");
+        return;
+    }
+
+    // Hancurkan chart lama jika ada
+    if (salesChart) {
+        salesChart.destroy();
+        salesChart = null;
+    }
 
     // Gunakan data dari window (dikirim dari server)
     const salesData = window.salesChartData || [0, 0, 0, 0, 0, 0, 0];
@@ -40,15 +51,14 @@ function initSalesChart() {
         "Minggu",
     ];
 
-    console.log("Sales Data:", salesData);
-    console.log("Labels:", labels);
+    console.log("Initializing Sales Chart with:", { labels, salesData });
 
-    // Gradient fill
-    const gradient = ctx.getContext("2d").createLinearGradient(0, 0, 0, 300);
+    const ctx = canvas.getContext("2d");
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, "rgba(212, 175, 55, 0.4)");
     gradient.addColorStop(1, "rgba(212, 175, 55, 0.02)");
 
-    const config = {
+    salesChart = new Chart(ctx, {
         type: "line",
         data: {
             labels: labels,
@@ -76,7 +86,7 @@ function initSalesChart() {
                 legend: {
                     labels: {
                         color: "#b0b0b0",
-                        font: { size: 11, family: "Inter" },
+                        font: { size: 11 },
                         usePointStyle: true,
                         boxWidth: 8,
                     },
@@ -101,20 +111,16 @@ function initSalesChart() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: {
-                        color: "rgba(255, 255, 255, 0.05)",
-                        drawBorder: false,
-                    },
+                    grid: { color: "rgba(255, 255, 255, 0.05)" },
                     ticks: {
                         color: "#b0b0b0",
                         callback: function (value) {
-                            if (value >= 1000000) {
+                            if (value >= 1000000)
                                 return (
                                     "Rp " + (value / 1000000).toFixed(1) + "jt"
                                 );
-                            } else if (value >= 1000) {
+                            if (value >= 1000)
                                 return "Rp " + (value / 1000).toFixed(0) + "rb";
-                            }
                             return "Rp " + value.toLocaleString("id-ID");
                         },
                     },
@@ -130,24 +136,33 @@ function initSalesChart() {
                     ticks: { color: "#b0b0b0" },
                     title: {
                         display: true,
-                        text: "Hari",
+                        text: "Periode",
                         color: "#d4af37",
                         font: { size: 11 },
                     },
                 },
             },
         },
-    };
+    });
 
-    window.salesChart = new Chart(ctx, config);
+    console.log("Sales Chart initialized successfully");
 }
 
 /**
  * Category Distribution Chart with Real Data
  */
 function initCategoryChart() {
-    const ctx = document.getElementById("categoryChart");
-    if (!ctx) return;
+    const canvas = document.getElementById("categoryChart");
+    if (!canvas) {
+        console.error("categoryChart canvas not found!");
+        return;
+    }
+
+    // Hancurkan chart lama jika ada
+    if (categoryChart) {
+        categoryChart.destroy();
+        categoryChart = null;
+    }
 
     const categoryLabels = window.categoryChartLabels || [
         "Mesin",
@@ -158,10 +173,12 @@ function initCategoryChart() {
     ];
     const categoryValues = window.categoryChartValues || [0, 0, 0, 0, 0];
 
-    console.log("Category Labels:", categoryLabels);
-    console.log("Category Values:", categoryValues);
+    console.log("Initializing Category Chart with:", {
+        categoryLabels,
+        categoryValues,
+    });
 
-    const config = {
+    categoryChart = new Chart(canvas, {
         type: "doughnut",
         data: {
             labels: categoryLabels,
@@ -192,7 +209,7 @@ function initCategoryChart() {
                     position: "bottom",
                     labels: {
                         color: "#b0b0b0",
-                        font: { size: 11, family: "Inter" },
+                        font: { size: 11 },
                         usePointStyle: true,
                         boxWidth: 10,
                         padding: 15,
@@ -220,30 +237,96 @@ function initCategoryChart() {
                 },
             },
         },
-    };
+    });
 
-    window.categoryChart = new Chart(ctx, config);
+    console.log("Category Chart initialized successfully");
 }
 
 /**
- * Refresh charts with latest data
+ * Initialize Period Filter (Minggu, Bulan, Tahun)
  */
-async function refreshCharts() {
+function initPeriodFilter() {
+    const periodBtns = document.querySelectorAll("[data-period]");
+    const chartTitle = document.getElementById("chartTitle");
+
+    console.log("Period buttons found:", periodBtns.length);
+
+    if (periodBtns.length === 0) {
+        console.warn("No period buttons found!");
+        return;
+    }
+
+    periodBtns.forEach((btn) => {
+        btn.addEventListener("click", async function () {
+            // Update active state
+            periodBtns.forEach((b) => b.classList.remove("active"));
+            this.classList.add("active");
+
+            const period = this.getAttribute("data-period");
+            const title = this.getAttribute("data-title");
+
+            if (chartTitle && title) {
+                chartTitle.innerHTML = `<i class="fas fa-chart-line me-2"></i> ${title}`;
+            }
+
+            console.log("Fetching data for period:", period);
+
+            try {
+                const response = await fetch(
+                    `/api/dashboard/stats?period=${period}`,
+                );
+                const data = await response.json();
+
+                console.log("Period data response:", data);
+
+                if (data && data.sales_data) {
+                    if (salesChart) {
+                        salesChart.data.labels = data.sales_labels;
+                        salesChart.data.datasets[0].data = data.sales_data;
+                        salesChart.update();
+                    }
+                }
+
+                if (data && data.category_labels && data.category_values) {
+                    if (categoryChart) {
+                        categoryChart.data.labels = data.category_labels;
+                        categoryChart.data.datasets[0].data =
+                            data.category_values;
+                        categoryChart.update();
+                    }
+                }
+
+                showToast(
+                    `Menampilkan data ${period === "week" ? "Mingguan" : period === "month" ? "Bulanan" : "Tahunan"}`,
+                    "success",
+                );
+            } catch (error) {
+                console.error("Error fetching period data:", error);
+                showToast("Gagal memuat data", "error");
+            }
+        });
+    });
+}
+
+/**
+ * Refresh dashboard data
+ */
+async function refreshDashboardData() {
     try {
         const response = await fetch("/api/dashboard/stats");
         const data = await response.json();
 
-        if (window.salesChart && data.sales_data) {
-            window.salesChart.data.datasets[0].data = data.sales_data;
-            window.salesChart.update();
+        if (salesChart && data.sales_data) {
+            salesChart.data.datasets[0].data = data.sales_data;
+            salesChart.update();
         }
 
-        if (window.categoryChart && data.category_values) {
-            window.categoryChart.data.datasets[0].data = data.category_values;
-            window.categoryChart.update();
+        if (categoryChart && data.category_values) {
+            categoryChart.data.datasets[0].data = data.category_values;
+            categoryChart.update();
         }
     } catch (error) {
-        console.error("Error refreshing charts:", error);
+        console.error("Error refreshing dashboard data:", error);
     }
 }
 
@@ -288,62 +371,10 @@ function addLoadingAnimation() {
     });
 }
 
-/**
- * Update Dashboard Stats via AJAX
- */
-async function updateDashboardStats() {
-    try {
-        const response = await fetch("/api/dashboard/stats");
-        const data = await response.json();
-
-        animateValue("totalSparepart", data.total_sparepart || 0);
-        animateValue("lowStockCount", data.low_stock_count || 0);
-
-        if (document.getElementById("salesToday")) {
-            document.getElementById("salesToday").innerText = formatRupiah(
-                data.sales_today || 0,
-            );
-        }
-        if (document.getElementById("totalTransactions")) {
-            document.getElementById("totalTransactions").innerText =
-                data.total_transactions || 0;
-        }
-    } catch (error) {
-        console.error("Error updating dashboard stats:", error);
-    }
-}
-
-/**
- * Animate Number Counter
- */
-function animateValue(elementId, endValue) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-
-    const startValue = parseInt(element.innerText.replace(/\D/g, "")) || 0;
-    const duration = 500;
-    const stepTime = 20;
-    const steps = duration / stepTime;
-    const increment = (endValue - startValue) / steps;
-    let currentStep = 0;
-
-    const timer = setInterval(() => {
-        currentStep++;
-        const currentValue = Math.round(startValue + increment * currentStep);
-        element.innerText = currentValue;
-
-        if (currentStep >= steps) {
-            element.innerText = endValue;
-            clearInterval(timer);
-        }
-    }, stepTime);
-}
-
 // =====================================================
 // TARGET PENJUALAN FUNCTIONS
 // =====================================================
 
-// Fungsi untuk membuka modal target
 window.openTargetModal = function () {
     console.log("openTargetModal called");
     const modalElement = document.getElementById("targetModal");
@@ -355,7 +386,6 @@ window.openTargetModal = function () {
     }
 };
 
-// Fungsi untuk update target
 window.updateTarget = async function () {
     console.log("updateTarget called");
     const targetInput = document.getElementById("targetSalesInput");
@@ -371,7 +401,6 @@ window.updateTarget = async function () {
         return;
     }
 
-    // Tampilkan loading
     const saveButton = document.querySelector("#targetModal .btn-gold");
     const originalText = saveButton.innerHTML;
     saveButton.innerHTML =
@@ -387,128 +416,52 @@ window.updateTarget = async function () {
                     'meta[name="csrf-token"]',
                 ).content,
             },
-            body: JSON.stringify({
-                target_sales: targetValue,
-            }),
+            body: JSON.stringify({ target_sales: targetValue }),
         });
 
         const data = await response.json();
-        console.log("Response:", data);
 
         if (data.success) {
-            // Update semua tampilan target di halaman
             const formattedTarget = formatRupiah(targetValue);
 
-            // Update target display di card utama
             const targetDisplay = document.getElementById("targetSalesDisplay");
             if (targetDisplay) targetDisplay.innerText = formattedTarget;
 
-            // Update target label di card
             const targetLabel = document.querySelector(
                 ".target-card .target-label",
             );
-            if (targetLabel) {
+            if (targetLabel)
                 targetLabel.innerText = `Target: ${formattedTarget}`;
-            }
-
-            // Update current target di modal
-            const currentTargetSpan = document.getElementById("currentTarget");
-            if (currentTargetSpan) {
-                currentTargetSpan.innerHTML = formattedTarget;
-            }
-
-            // Hitung ulang persentase
-            const monthlyTotalText = document.querySelector(
-                "#monthlyTotalDisplay, .target-card div:last-child strong",
-            );
-            let monthlyTotal = 0;
-
-            // Ambil monthly total dari berbagai kemungkinan source
-            if (data.monthly_total !== undefined) {
-                monthlyTotal = data.monthly_total;
-            } else {
-                const monthlyTotalElement = document.getElementById(
-                    "monthlyTotalDisplay",
-                );
-                if (monthlyTotalElement) {
-                    monthlyTotal =
-                        parseInt(
-                            monthlyTotalElement.innerText.replace(/\D/g, ""),
-                        ) || 0;
-                } else {
-                    const monthlyText = document.querySelector(
-                        ".target-card div:last-child strong",
-                    );
-                    if (monthlyText) {
-                        monthlyTotal =
-                            parseInt(
-                                monthlyText.innerText.replace(/\D/g, ""),
-                            ) || 0;
-                    }
-                }
-            }
-
-            // Update progress bar
-            const percentage =
-                monthlyTotal > 0
-                    ? Math.min((monthlyTotal / targetValue) * 100, 100)
-                    : 0;
-            const progressBar = document.querySelector(".progress-bar");
-            if (progressBar) {
-                progressBar.style.width = percentage + "%";
-                progressBar.setAttribute("aria-valuenow", percentage);
-            }
-
-            // Update persentase teks
-            const percentageText = document.querySelector(
-                ".target-card .mb-2 strong",
-            );
-            if (percentageText) {
-                percentageText.innerHTML = percentage.toFixed(1) + "%";
-            }
 
             showToast(data.message || "Target berhasil diupdate!", "success");
 
-            // Tutup modal
             const modalElement = document.getElementById("targetModal");
             if (modalElement) {
                 const modal = bootstrap.Modal.getInstance(modalElement);
                 if (modal) modal.hide();
             }
 
-            // Refresh data dashboard
-            setTimeout(() => {
-                if (window.dashboard && window.dashboard.updateStats) {
-                    window.dashboard.updateStats();
-                }
-                if (window.refreshCharts) {
-                    window.refreshCharts();
-                }
-            }, 500);
+            // Refresh dashboard data
+            setTimeout(() => refreshDashboardData(), 500);
         } else {
             showToast(data.message || "Gagal update target", "error");
         }
     } catch (error) {
         console.error("Error:", error);
-        showToast("Terjadi kesalahan pada server: " + error.message, "error");
+        showToast("Terjadi kesalahan pada server", "error");
     } finally {
-        // Reset button
         saveButton.innerHTML = originalText;
         saveButton.disabled = false;
     }
 };
 
-// Fungsi show toast notification
 function showToast(message, type = "success") {
     const existingToasts = document.querySelectorAll(".toast-notification");
     existingToasts.forEach((toast) => toast.remove());
 
     const toast = document.createElement("div");
     toast.className = `toast-notification toast-${type}`;
-    toast.innerHTML = `
-            <i class="fas ${type === "success" ? "fa-check-circle" : "fa-exclamation-circle"} me-2"></i>
-            ${message}
-        `;
+    toast.innerHTML = `<i class="fas ${type === "success" ? "fa-check-circle" : "fa-exclamation-circle"} me-2"></i> ${message}`;
     document.body.appendChild(toast);
 
     setTimeout(() => toast.classList.add("show"), 10);
@@ -518,48 +471,14 @@ function showToast(message, type = "success") {
     }, 3000);
 }
 
-// Period filter functionality
-document.querySelectorAll("[data-period]").forEach((btn) => {
-    btn.addEventListener("click", function () {
-        document.querySelectorAll("[data-period]").forEach((b) => {
-            b.classList.remove("active");
-        });
-        this.classList.add("active");
-
-        const period = this.getAttribute("data-period");
-        console.log("Switch to period:", period);
-
-        fetch(`/api/dashboard/stats?period=${period}`)
-            .then((response) => response.json())
-            .then((data) => {
-                if (window.salesChart) {
-                    window.salesChart.data.datasets[0].data =
-                        data.sales_data || [];
-                    window.salesChart.update();
-                }
-                if (window.categoryChart) {
-                    window.categoryChart.data.datasets[0].data =
-                        data.category_values || [];
-                    window.categoryChart.update();
-                }
-            })
-            .catch((error) => console.error("Error:", error));
-    });
-});
-
-/**
- * Format Rupiah
- */
 function formatRupiah(amount) {
     return "Rp " + amount.toLocaleString("id-ID");
 }
 
-// Export functions for global access
+// Export for global access
 window.dashboard = {
-    updateStats: updateDashboardStats,
-    refreshCharts: refreshCharts,
-    refreshTargetData: refreshTargetData,
-    formatRupiah: formatRupiah,
+    refreshDashboardData,
+    formatRupiah,
     updateTarget: window.updateTarget,
     openTargetModal: window.openTargetModal,
 };

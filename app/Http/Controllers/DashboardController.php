@@ -32,7 +32,7 @@ class DashboardController extends Controller
         $transactionsCount = Transaction::whereDate('created_at', $today)->count();
         $totalTransactions = Transaction::count();
 
-        // Data untuk grafik penjualan 7 hari terakhir
+        // Data untuk grafik penjualan 7 hari terakhir (default Minggu)
         $salesData = [];
         $labels = [];
         for ($i = 6; $i >= 1; $i--) {
@@ -73,39 +73,89 @@ class DashboardController extends Controller
         ));
     }
 
-    public function getStats()
+    public function getStats(Request $request)
     {
-        $today = date('Y-m-d');
+        $period = $request->get('period', 'week');
+        $year = date('Y');
+        $month = date('m');
 
-        // Data 7 hari terakhir untuk grafik
-        $salesData = [];
-        $labels = [];
-        for ($i = 6; $i >= 1; $i--) {
-            $date = date('Y-m-d', strtotime("-$i days"));
-            $labels[] = $this->getDayName($date);
-            $salesData[] = (int) Transaction::whereDate('created_at', $date)->sum('total_amount');
+        $periodTitle = '';
+
+        if ($period === 'week') {
+            // Data 7 hari terakhir
+            $salesData = [];
+            $labels = [];
+            for ($i = 6; $i >= 0; $i--) {
+                $date = date('Y-m-d', strtotime("-$i days"));
+                $labels[] = $this->getDayName($date);
+                $salesData[] = (int) Transaction::whereDate('created_at', $date)->sum('total_amount');
+            }
+            $periodTitle = 'Grafik Penjualan (7 Hari Terakhir)';
+        } elseif ($period === 'month') {
+            // Data per minggu dalam bulan ini - PERBAIKAN
+            $labels = [];
+            $salesData = [];
+
+            // Hitung jumlah minggu dalam bulan ini
+            $firstDay = date('Y-m-01');
+            $lastDay = date('Y-m-t');
+            $weeks = [];
+
+            $start = strtotime($firstDay);
+            $end = strtotime($lastDay);
+
+            $weekNumber = 1;
+            $currentWeekStart = $start;
+
+            while ($currentWeekStart <= $end) {
+                $weekEnd = min(strtotime('+6 days', $currentWeekStart), $end);
+                $labels[] = "Minggu $weekNumber";
+
+                $startDate = date('Y-m-d', $currentWeekStart);
+                $endDate = date('Y-m-d', $weekEnd);
+
+                $total = (int) Transaction::whereBetween('created_at', [
+                    $startDate . ' 00:00:00',
+                    $endDate . ' 23:59:59'
+                ])->sum('total_amount');
+
+                $salesData[] = $total;
+
+                $weekNumber++;
+                $currentWeekStart = strtotime('+7 days', $currentWeekStart);
+            }
+
+            // Jika kurang dari 4 minggu, tambahkan placeholder
+            while (count($labels) < 4) {
+                $labels[] = "Minggu " . (count($labels) + 1);
+                $salesData[] = 0;
+            }
+
+            $periodTitle = 'Grafik Penjualan (Per Minggu - Bulan ' . date('F Y') . ')';
+        } else { // year
+            // Data per bulan dalam tahun ini
+            $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+            $salesData = [];
+            for ($i = 1; $i <= 12; $i++) {
+                $salesData[] = (int) Transaction::whereYear('created_at', $year)
+                    ->whereMonth('created_at', $i)
+                    ->sum('total_amount');
+            }
+            $periodTitle = 'Grafik Penjualan (Per Bulan - Tahun ' . $year . ')';
         }
-        $labels[] = $this->getDayName($today);
-        $salesData[] = (int) Transaction::whereDate('created_at', $today)->sum('total_amount');
 
         // Data distribusi kategori
         $categoryDistribution = Category::withCount('spareparts')->get();
 
         return response()->json([
-            'total_sparepart' => Sparepart::count(),
-            'low_stock_count' => Sparepart::whereColumn('stock', '<=', 'min_stock')->count(),
-            'sales_today' => (int) Transaction::whereDate('created_at', $today)->sum('total_amount'),
-            'transactions_today' => Transaction::whereDate('created_at', $today)->count(),
-            'total_transactions' => Transaction::count(),
+            'success' => true,
             'sales_data' => $salesData,
             'sales_labels' => $labels,
+            'period_title' => $periodTitle,
             'category_labels' => $categoryDistribution->pluck('name'),
             'category_values' => $categoryDistribution->pluck('spareparts_count'),
-            'target_sales' => (int) Setting::get('target_sales', 3000000),
-            'monthly_sales' => Transaction::whereMonth('created_at', date('m'))->sum('total_amount'),
         ]);
     }
-
     /**
      * Update target penjualan
      */

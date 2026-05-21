@@ -7,6 +7,7 @@ use App\Models\StockCard;
 use App\Models\StockOpname;
 use App\Models\PurchaseReceipt;
 use App\Models\StockAdjustment;
+use App\Models\StockAdjustmentitem;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,71 +31,136 @@ class ReportController extends Controller
         // Ringkasan Stock Opname
         $stockOpname = StockOpname::where('period', $period)->first();
 
-        // Total Pembelian bulan ini
-        $totalPurchase = PurchaseReceipt::whereYear('receipt_date', $year)
-            ->whereMonth('receipt_date', $month)
-            ->sum(DB::raw('(SELECT SUM(quantity * purchase_price) FROM purchase_receipt_items WHERE purchase_receipt_id = purchase_receipts.id)'));
-
-        // Total Penjualan bulan ini
+        // Total Penjualan (Nilai uang dari transaksi)
         $totalSales = Transaction::whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->sum('total_amount');
 
+        // Barang Keluar (Jumlah item yang terjual) untuk periode yang dipilih
+        $transactions = Transaction::whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->get();
+
+        $totalOutgoingQuantity = 0;
+        foreach ($transactions as $transaction) {
+            $items = $transaction->items;
+            if (is_string($items)) {
+                $items = json_decode($items, true);
+            }
+            if (is_array($items)) {
+                foreach ($items as $item) {
+                    $totalOutgoingQuantity += $item['quantity'] ?? 0;
+                }
+            }
+        }
+
+        // Data untuk grafik dual axis - PER BULAN
+        $monthlySales = []; // Nominal penjualan per bulan (Rp)
+        $monthlyOutgoingQuantities = []; // Barang keluar per bulan (pcs)
+
+        for ($i = 1; $i <= 12; $i++) {
+            // Nominal penjualan per bulan
+            $monthlySales[$i] = Transaction::whereYear('created_at', $year)
+                ->whereMonth('created_at', $i)
+                ->sum('total_amount');
+
+            // Barang keluar per bulan (jumlah item)
+            $transactionsPerMonth = Transaction::whereYear('created_at', $year)
+                ->whereMonth('created_at', $i)
+                ->get();
+
+            $outgoingQty = 0;
+            foreach ($transactionsPerMonth as $transaction) {
+                $items = $transaction->items;
+                if (is_string($items)) {
+                    $items = json_decode($items, true);
+                }
+                if (is_array($items)) {
+                    foreach ($items as $item) {
+                        $outgoingQty += $item['quantity'] ?? 0;
+                    }
+                }
+            }
+            $monthlyOutgoingQuantities[$i] = $outgoingQty;
+        }
+
         // Total Penyesuaian Stok
-        $totalAdjustmentIn = StockAdjustment::where('type', 'in')
-            ->whereYear('adjustment_date', $year)
-            ->whereMonth('adjustment_date', $month)
-            ->count();
+        $totalAdjustmentIn = DB::table('stock_adjustment_items')
+            ->join('stock_adjustments', 'stock_adjustment_items.stock_adjustment_id', '=', 'stock_adjustments.id')
+            ->where('stock_adjustments.type', 'in')
+            ->whereYear('stock_adjustments.adjustment_date', $year)
+            ->whereMonth('stock_adjustments.adjustment_date', $month)
+            ->sum('stock_adjustment_items.quantity');
 
-        $totalAdjustmentOut = StockAdjustment::where('type', 'out')
-            ->whereYear('adjustment_date', $year)
-            ->whereMonth('adjustment_date', $month)
-            ->count();
+        $totalAdjustmentOut = DB::table('stock_adjustment_items')
+            ->join('stock_adjustments', 'stock_adjustment_items.stock_adjustment_id', '=', 'stock_adjustments.id')
+            ->where('stock_adjustments.type', 'out')
+            ->whereYear('stock_adjustments.adjustment_date', $year)
+            ->whereMonth('stock_adjustments.adjustment_date', $month)
+            ->sum('stock_adjustment_items.quantity');
 
-        // Data untuk grafik
-        $monthlySales = Transaction::select(
-            DB::raw('MONTH(created_at) as month'),
-            DB::raw('SUM(total_amount) as total')
-        )
-            ->whereYear('created_at', $year)
-            ->groupBy('month')
-            ->pluck('total', 'month')
-            ->toArray();
-
-        $monthlyPurchase = PurchaseReceipt::select(
-            DB::raw('MONTH(receipt_date) as month'),
-            DB::raw('SUM( (SELECT SUM(quantity * purchase_price) FROM purchase_receipt_items WHERE purchase_receipt_id = purchase_receipts.id) ) as total')
-        )
-            ->whereYear('receipt_date', $year)
-            ->groupBy('month')
-            ->pluck('total', 'month')
-            ->toArray();
-
-        // Top 10 sparepart tersedia
+        // Top 10 sparepart stok terbanyak
         $topSpareparts = Sparepart::orderBy('stock', 'desc')->take(10)->get();
 
-        // Top 10 sparepart yang sering dibeli
-        $topPurchased = PurchaseReceipt::select('spareparts.id', 'spareparts.name', 'spareparts.code')
-            ->join('purchase_receipt_items', 'purchase_receipts.id', '=', 'purchase_receipt_items.purchase_receipt_id')
-            ->join('spareparts', 'purchase_receipt_items.sparepart_id', '=', 'spareparts.id')
-            ->selectRaw('SUM(purchase_receipt_items.quantity) as total_quantity')
-            ->groupBy('spareparts.id', 'spareparts.name', 'spareparts.code')
-            ->orderBy('total_quantity', 'desc')
-            ->take(10)
-            ->get();
+        // History Penjualan (10 terbaru)
+        $recentTransactions = Transaction::orderBy('created_at', 'desc')->take(10)->get();
 
         return view('reports.index', compact(
             'period',
             'stockOpname',
-            'totalPurchase',
             'totalSales',
+            'totalOutgoingQuantity',
+            'monthlySales',
+            'monthlyOutgoingQuantities',
             'totalAdjustmentIn',
             'totalAdjustmentOut',
-            'monthlySales',
-            'monthlyPurchase',
             'topSpareparts',
-            'topPurchased'
+            'recentTransactions'
         ));
+    }
+
+    /**
+     * Detail Transaksi / History Penjualan
+     * Menampilkan nota dengan format yang sama seperti di POS
+     */
+    public function transactionDetail($id)
+    {
+        $transaction = Transaction::with('user')->findOrFail($id);
+
+        // Ambil items (Laravel sudah otomatis decode JSON)
+        $items = $transaction->items;
+
+        // Jika masih string, decode
+        if (is_string($items)) {
+            $items = json_decode($items, true);
+        }
+
+        // Pastikan array
+        $items = is_array($items) ? $items : [];
+
+        // Ambil detail sparepart untuk setiap item
+        foreach ($items as $key => $item) {
+            if (isset($item['id'])) {
+                $sparepart = Sparepart::find($item['id']);
+                $items[$key]['code'] = $sparepart->code ?? '-';
+                $items[$key]['name'] = $sparepart->name ?? '-';
+                if (!isset($item['price']) || $item['price'] == 0) {
+                    $items[$key]['price'] = $sparepart->selling_price ?? 0;
+                } else {
+                    $items[$key]['code'] = '-';
+                    $items[$key]['name'] = '-';
+                    $items[$key]['price'] = 0;
+                }
+                $items[$key]['quantity'] = $item['quantity'] ?? 1;
+            } else {
+                $items[$key]['code'] = '-';
+                $items[$key]['name'] = '-';
+                $items[$key]['price'] = 0;
+                $items[$key]['quantity'] = 1;
+            }
+        }
+
+        return view('reports.transaction-detail', compact('transaction', 'items'));
     }
 
     /**
@@ -177,12 +243,9 @@ class ReportController extends Controller
     public function export(Request $request)
     {
         $type = $request->get('type');
-        $format = $request->get('format', 'excel'); // excel or pdf
+        $format = $request->get('format', 'excel');
 
-        // This will be implemented with Maatwebsite Excel package
-        // Untuk sementara redirect dengan pesan info
-
-        return redirect()->back()->with('info', 'Fitur export sedang dalam pengembangan. Install package: composer require maatwebsite/excel');
+        return redirect()->back()->with('info', 'Fitur export sedang dalam pengembangan.');
     }
 
     /**
@@ -196,18 +259,13 @@ class ReportController extends Controller
         $spareparts = Sparepart::with('category')->get();
 
         foreach ($spareparts as $sparepart) {
-            // Total pembelian sparepart ini
             $sparepart->total_purchased = PurchaseReceipt::whereHas('items', function ($q) use ($sparepart) {
                 $q->where('sparepart_id', $sparepart->id);
             })
                 ->whereBetween('receipt_date', [$startDate, $endDate])
                 ->sum(DB::raw('(SELECT SUM(quantity) FROM purchase_receipt_items WHERE purchase_receipt_id = purchase_receipts.id AND sparepart_id = ' . $sparepart->id . ')'));
 
-            // Total penjualan sparepart ini (dari transaction items)
-            // Note: Ini memerlukan tabel transaction_items jika ingin detail per sparepart
-            $sparepart->total_sold = 0; // Implement if transaction_items table exists
-
-            // Nilai stok (harga beli terakhir * stok)
+            $sparepart->total_sold = 0;
             $sparepart->stock_value = $sparepart->stock * $sparepart->purchase_price;
         }
 
@@ -221,7 +279,6 @@ class ReportController extends Controller
     {
         $year = $request->get('year', date('Y'));
 
-        // Pendapatan per bulan
         $revenues = Transaction::select(
             DB::raw('MONTH(created_at) as month'),
             DB::raw('SUM(total_amount) as total')
@@ -233,7 +290,6 @@ class ReportController extends Controller
             ->pluck('total', 'month')
             ->toArray();
 
-        // Pengeluaran per bulan (pembelian)
         $expenses = PurchaseReceipt::select(
             DB::raw('MONTH(receipt_date) as month'),
             DB::raw('SUM( (SELECT SUM(quantity * purchase_price) FROM purchase_receipt_items WHERE purchase_receipt_id = purchase_receipts.id) ) as total')
@@ -245,7 +301,6 @@ class ReportController extends Controller
             ->pluck('total', 'month')
             ->toArray();
 
-        // Profit/Loss per bulan
         $profits = [];
         for ($i = 1; $i <= 12; $i++) {
             $revenue = $revenues[$i] ?? 0;

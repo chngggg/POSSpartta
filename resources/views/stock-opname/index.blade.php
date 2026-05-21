@@ -12,7 +12,7 @@
             </h4>
             <p class="text-muted">Kelola data stock opname / perhitungan fisik barang</p>
         </div>
-        <a href="{{ route('stock.opname.create') }}" class="btn btn-gold">
+        <a href="{{ route('stock-opname.create') }}" class="btn btn-gold">
             <i class="fas fa-plus-circle me-2"></i>
             Stock Opname Baru
         </a>
@@ -22,36 +22,34 @@
         <table class="table-premium">
             <thead>
                 <tr>
-                    <th><i class="fas fa-hashtag"></i> No</th>
-                    <th><i class="fas fa-barcode"></i> No. Opname</th>
-                    <th><i class="fas fa-calendar"></i> Tanggal</th>
-                    <th><i class="fas fa-chart-line"></i> Periode</th>
-                    <th><i class="fas fa-user"></i> Dibuat oleh</th>
-                    <th><i class="fas fa-flag-checkered"></i> Status</th>
-                    <th><i class="fas fa-cog"></i> Aksi</th>
+                    <th>No</th>
+                    <th>No. Opname</th>
+                    <th>Tanggal</th>
+                    <th>Periode</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($stockOpnames as $index => $opname)
                 <tr>
-                    <td data-label="No">{{ $stockOpnames->firstItem() + $index }}</td>
+                    <td data-label="No">{{ $loop->iteration }}</td>
                     <td data-label="No. Opname">
                         <code>{{ $opname->opname_number }}</code>
                     </td>
                     <td data-label="Tanggal">{{ $opname->opname_date->format('d/m/Y') }}</td>
-                    <td data-label="Periode">{{ $opname->period }}</td>
-                    <td data-label="Dibuat oleh">{{ $opname->creator->name }}</td>
+                    <td data-label="Periode">{{ $opname->period }}</a>
                     <td data-label="Status">
                         <span class="status-badge status-{{ $opname->status }}">
-                            {{ ucfirst($opname->status) }}
+                            {{ $opname->status == 'draft' ? 'Draft' : 'Selesai' }}
                         </span>
-                    </td>
+                        </a>
                     <td data-label="Aksi">
                         <div class="action-buttons">
-                            <a href="{{ route('stock.opname.show', $opname) }}" class="btn-icon view" title="Detail">
+                            <a href="{{ route('stock-opname.show', $opname) }}" class="btn-icon view" title="Detail">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{{ route('stock.opname.print', $opname) }}" class="btn-icon" title="Print Berita Acara" target="_blank">
+                            <a href="{{ route('stock-opname.print', $opname) }}" class="btn-icon" title="Print" target="_blank">
                                 <i class="fas fa-print"></i>
                             </a>
                             <button type="button" class="btn-icon delete delete-item"
@@ -61,23 +59,23 @@
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
-                    </td>
+                        </a>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7">
+                    <td colspan="6">
                         <div class="table-premium-empty">
                             <i class="fas fa-clipboard-list"></i>
                             <h5>Belum Ada Stock Opname</h5>
                             <p>Belum ada data stock opname yang tersimpan</p>
-                            <a href="{{ route('stock.opname.create') }}" class="btn btn-gold mt-3">
+                            <a href="{{ route('stock-opname.create') }}" class="btn btn-gold mt-3">
                                 <i class="fas fa-plus-circle me-2"></i>Buat Stock Opname Pertama
                             </a>
                         </div>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
+                        </a>
+        </table>
+        @endforelse
+        </tbody>
         </table>
 
         @if($stockOpnames->hasPages())
@@ -87,12 +85,9 @@
         @endif
     </div>
 </div>
+
+
 @endsection
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/stock.css') }}">
-@endpush
-
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -110,10 +105,32 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-gold" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-                    <i class="fas fa-trash-alt me-1"></i> Hapus
-                </button>
+                <form id="deleteForm" method="POST" action="">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Hapus</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delete handler
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const deleteButtons = document.querySelectorAll('.delete-item');
+
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+                document.getElementById('deleteItemName').textContent = name;
+                document.getElementById('deleteForm').action = `/stock-opname/${id}`;
+                deleteModal.show();
+            });
+        });
+    });
+</script>
+@endpush

@@ -299,11 +299,29 @@
     color: var(--gold);
     cursor: pointer;
     transition: all 0.3s ease;
+    font-size: 1rem;
 }
 
 .quantity-btn:hover {
     background: var(--gold);
     color: #0a0a0a;
+}
+
+.quantity-input {
+    width: 60px;
+    height: 30px;
+    text-align: center;
+    background: #1a1a1a;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+.quantity-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
 }
 
 .quantity-value {
@@ -469,6 +487,10 @@
         width: 100%;
         justify-content: center;
         margin-top: 10px;
+    }
+
+    .quantity-input {
+        width: 50px;
     }
 }
 

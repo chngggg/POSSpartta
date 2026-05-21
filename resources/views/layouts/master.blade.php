@@ -25,6 +25,9 @@
     <!-- Modern Table CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/table-modern.css') }}">
 
+    <!-- Stock Opname CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/stock.css') }}">
+
     <!-- Stats Cards CSS -->
     <!-- <link rel="stylesheet" href="{{ asset('assets/css/stats-cards.css') }}"> -->
 
@@ -107,9 +110,9 @@
                             </a>
                         </li>
 
-                        <!-- Stock Opname / Scan Barcode - Semua role bisa akses -->
+                        <!-- Stock Opname - Menu Baru -->
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('stock.*') ? 'active' : '' }}" href="{{ route('stock.opname.index') }}">
+                            <a class="nav-link" href="{{ route('stock-opname.index') }}">
                                 <i class="fas fa-clipboard-list"></i>
                                 <span>Stock Opname</span>
                             </a>
@@ -147,7 +150,8 @@
                     </div>
                     <div class="user-details">
                         <h6>{{ auth()->user()->name }}</h6>
-                        <p>{{ auth()->user()->role->name }}</p>
+                        <p>{{ auth()->user()->name }}</p>
+                        <p>{{ auth()->user()->email }}</p>
                     </div>
                 </div>
             </div>

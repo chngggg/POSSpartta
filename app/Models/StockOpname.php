@@ -13,7 +13,6 @@ class StockOpname extends Model
         'opname_date',
         'period',
         'created_by',
-        'verified_by',
         'status',
         'notes'
     ];
@@ -25,11 +24,6 @@ class StockOpname extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function verifier(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'verified_by');
     }
 
     public function items(): HasMany

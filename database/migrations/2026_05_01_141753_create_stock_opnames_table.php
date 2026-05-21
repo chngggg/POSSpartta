@@ -14,8 +14,7 @@ return new class extends Migration
             $table->date('opname_date');
             $table->string('period'); // Format: YYYY-MM
             $table->foreignId('created_by')->constrained('users');
-            $table->foreignId('verified_by')->nullable()->constrained('users');
-            $table->enum('status', ['draft', 'in_progress', 'completed', 'verified'])->default('draft');
+            $table->enum('status', ['draft', 'completed'])->default('draft');
             $table->text('notes')->nullable();
             $table->timestamps();
         });
