@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Sparepart;
 use App\Models\StockCard;
 use App\Models\StockOpname;
+use App\Models\StockOpnameItem;
 use App\Models\PurchaseReceipt;
 use App\Models\StockAdjustment;
-use App\Models\StockAdjustmentitem;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -144,13 +144,14 @@ class ReportController extends Controller
                 $sparepart = Sparepart::find($item['id']);
                 $items[$key]['code'] = $sparepart->code ?? '-';
                 $items[$key]['name'] = $sparepart->name ?? '-';
-                if (!isset($item['price']) || $item['price'] == 0) {
-                    $items[$key]['price'] = $sparepart->selling_price ?? 0;
+
+                // Gunakan price dari item jika ada, atau ambil dari sparepart
+                if (isset($item['price']) && $item['price'] > 0) {
+                    $items[$key]['price'] = $item['price'];
                 } else {
-                    $items[$key]['code'] = '-';
-                    $items[$key]['name'] = '-';
-                    $items[$key]['price'] = 0;
+                    $items[$key]['price'] = $sparepart->selling_price ?? 0;
                 }
+
                 $items[$key]['quantity'] = $item['quantity'] ?? 1;
             } else {
                 $items[$key]['code'] = '-';
@@ -178,11 +179,22 @@ class ReportController extends Controller
 
         if ($sparepartId) {
             $selectedSparepart = Sparepart::find($sparepartId);
-            $stockCards = StockCard::with('sparepart')
-                ->where('sparepart_id', $sparepartId)
-                ->whereBetween('date', [$startDate, $endDate])
-                ->orderBy('date', 'asc')
-                ->get();
+
+            // Untuk sementara, kosongkan dulu karena fitur ini tidak digunakan
+            // $stockCards = collect();
+
+            // Atau jika ingin tetap menggunakan, pastikan model StockOpnameItem ada
+            try {
+                $stockCards = StockOpnameItem::with('stockOpname', 'sparepart')
+                    ->where('sparepart_id', $sparepartId)
+                    ->whereHas('stockOpname', function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('opname_date', [$startDate, $endDate]);
+                    })
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+            } catch (\Exception $e) {
+                $stockCards = collect();
+            }
         }
 
         return view('reports.stock-card', compact(

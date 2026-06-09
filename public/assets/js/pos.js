@@ -350,11 +350,7 @@ function createPaymentModal() {
                                 <div class="method-name">Tunai</div>
                                 <div class="method-desc">Pembayaran tunai</div>
                             </div>
-                            <div class="payment-method-card qris" onclick="selectPaymentMethod('qris')">
-                                <i class="fas fa-qrcode"></i>
-                                <div class="method-name">QRIS</div>
-                                <div class="method-desc">Scan QR Code</div>
-                            </div>
+                            
                             <div class="payment-method-card transfer" onclick="selectPaymentMethod('transfer')">
                                 <i class="fas fa-university"></i>
                                 <div class="method-name">Transfer Bank</div>
@@ -838,7 +834,7 @@ function showPaymentReceipt(transactionId, total, payment, change, method) {
             <!-- Kop Faktur -->
             <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #1a1a1a; padding-bottom: 15px;">
                 <div style="font-size: 24px; font-weight: 800; letter-spacing: 3px; color: #d4af37;">SPARTTA POS</div>
-                <div style="font-size: 11px; color: #555; margin-top: 5px;">Jl. Merdeka No. 123, Jakarta Selatan 12120</div>
+                <div style="font-size: 11px; color: #555; margin-top: 5px;">Jl. Sringin Raya Rt.1 Rw.4 No. 18, Terboyo Wetan, Genuk, Semarang 50112</div>
                 <div style="font-size: 10px; color: #777;">Telp: (021) 1234-5678 | Email: info@sparttapos.com</div>
                 <div style="font-size: 10px; color: #777;">www.sparttapos.com</div>
             </div>

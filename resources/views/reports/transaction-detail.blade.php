@@ -13,16 +13,16 @@
             <p class="text-muted">{{ $transaction->transaction_id }}</p>
         </div>
         <div>
-            <button class="btn btn-gold" onclick="printReceipt()">
+            <button class="btn btn-gold no-print" onclick="printReceipt()">
                 <i class="fas fa-print me-2"></i> Cetak Faktur
             </button>
-            <a href="{{ route('reports.index') }}" class="btn btn-outline-gold">
+            <a href="{{ route('reports.index') }}" class="btn btn-outline-gold no-print">
                 <i class="fas fa-arrow-left me-2"></i> Kembali
             </a>
         </div>
     </div>
 
-    <!-- NOTA / FAKTUR - SAMA PERSIS DENGAN DI POS -->
+    <!-- NOTA / FAKTUR -->
     <div id="printArea" style="
         background: white;
         color: #1a1a1a;
@@ -36,8 +36,8 @@
         <!-- Kop Faktur -->
         <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #1a1a1a; padding-bottom: 15px;">
             <div style="font-size: 24px; font-weight: 800; letter-spacing: 3px; color: #d4af37;">SPARTTA POS</div>
-            <div style="font-size: 11px; color: #555; margin-top: 5px;">Jl. Merdeka No. 123, Jakarta Selatan 12120</div>
-            <div style="font-size: 10px; color: #777;">Telp: (021) 1234-5678 | Email: info@sparttapos.com</div>
+            <div style="font-size: 11px; color: #555; margin-top: 5px;">Jl. Sringin Raya Rt.1 Rw.4 No. 18, Terboyo Wetan, Genuk, Semarang 50112</div>
+            <div style="font-size: 10px; color: #777;">Telp: (024) 1234-5678 | Email: info@sparttapos.com</div>
             <div style="font-size: 10px; color: #777;">www.sparttapos.com</div>
         </div>
 
@@ -103,19 +103,27 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($items as $index => $item)
+                @forelse($items as $index => $item)
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 10px 5px; text-align: center;">{{ $index + 1 }}</td>
                     <td style="padding: 10px 5px;">
                         <div style="font-weight: 600;">{{ $item['name'] ?? '-' }}</div>
-                        <div style="font-size: 10px; color: #888;">{{ $item['code'] ?? '-' }}</div>
+                        <div style="font-size: 9px; color: #888;">{{ $item['code'] ?? '-' }}</div>
                     </td>
                     <td style="padding: 10px 5px; text-align: center;">{{ $item['quantity'] ?? 0 }}</td>
-                    <td style="padding: 10px 5px; text-align: right;">{{ isset($item['price']) ? number_format($item['price'], 0, ',', '.') : '0' }}</td>
-                    <td style="padding: 10px 5px; text-align: right; font-weight: 600; color: #2ecc71;">{{ isset($item['price']) && isset($item['quantity']) ? number_format($item['price'] * $item['quantity'], 0, ',', '.') : '0' }}</td>
-        </table>
-        @endforeach
-        </tbody>
+                    <td style="padding: 10px 5px; text-align: right;">{{ isset($item['price']) && $item['price'] > 0 ? 'Rp ' . number_format($item['price'], 0, ',', '.') : '-' }}</td>
+                    <td style="padding: 10px 5px; text-align: right; font-weight: 600; color: #2ecc71;">
+                        {{ isset($item['price']) && isset($item['quantity']) && $item['price'] > 0 ? 'Rp ' . number_format($item['price'] * $item['quantity'], 0, ',', '.') : '-' }}
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" style="padding: 20px; text-align: center; color: #999;">
+                        <i class="fas fa-box-open"></i> Tidak ada item dalam transaksi ini
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
         </table>
 
         <!-- Garis Pemisah -->
@@ -125,7 +133,9 @@
         <table style="width: 100%; font-size: 12px; margin: 10px 0;">
             <tr>
                 <td style="width: 70%; text-align: right; padding: 5px;">Subtotal:</td>
-                <td style="width: 30%; text-align: right; padding: 5px; font-weight: 600;">{{ number_format($transaction->total_amount, 0, ',', '.') }}</td>
+                <td style="width: 30%; text-align: right; padding: 5px; font-weight: 600;">
+                    {{ number_format($transaction->total_amount, 0, ',', '.') }}
+                </td>
             </tr>
             @if($transaction->payment_amount > $transaction->total_amount)
             <tr>
@@ -134,28 +144,34 @@
             </tr>
             <tr>
                 <td style="text-align: right; padding: 5px;">Kembalian:</td>
-                <td style="text-align: right; padding: 5px; color: #2ecc71; font-weight: 700;">{{ number_format($transaction->change_amount, 0, ',', '.') }}</td>
+                <td style="text-align: right; padding: 5px; color: #2ecc71; font-weight: 700;">
+                    {{ number_format($transaction->change_amount, 0, ',', '.') }}
+                </td>
             </tr>
             @endif
             <tr style="border-top: 2px solid #d4af37;">
                 <td style="text-align: right; padding: 10px 5px 5px;"><strong>TOTAL</strong></td>
-                <td style="text-align: right; padding: 10px 5px 5px;"><strong style="font-size: 16px; color: #d4af37;">{{ number_format($transaction->total_amount, 0, ',', '.') }}</strong></td>
+                <td style="text-align: right; padding: 10px 5px 5px;">
+                    <strong style="font-size: 16px; color: #d4af37;">
+                        {{ number_format($transaction->total_amount, 0, ',', '.') }}
+                    </strong>
+                </td>
             </tr>
         </table>
 
         <!-- Terbilang -->
-        <div style="background: #f9f9f9; padding: 10px; margin: 15px 0; border-left: 3px solid #d4af37;">
+        <!-- <div style="background: #f9f9f9; padding: 10px; margin: 15px 0; border-left: 3px solid #d4af37;">
             <div style="font-size: 10px; color: #666;">Terbilang:</div>
             <div style="font-size: 11px; font-weight: 600;" id="terbilangText"></div>
-        </div>
+        </div> -->
 
-        <!-- Footer dengan label DUPLICATE untuk history -->
+        <!-- Footer -->
         <div style="text-align: center; margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd;">
             <div style="font-size: 11px; font-weight: 500;">✨ Terima kasih atas kunjungan Anda! ✨</div>
             <div style="font-size: 10px; color: #888; margin-top: 8px;">Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan</div>
             <div style="font-size: 9px; color: #aaa; margin-top: 10px;">This is a computer generated document, no signature required.</div>
 
-            <!-- TAMBAHKAN LABEL DUPLICATE / COPY -->
+            <!-- Label DUPLICATE untuk history -->
             <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">
                 <div style="font-size: 10px; color: #e74c3c; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
                     ⚠️ DUPLICATE / COPY - BUKAN NOTA ASLI ⚠️
@@ -190,9 +206,13 @@
 
         #printArea {
             box-shadow: none;
-            padding: 10px;
+            padding: 20px;
             margin: 0;
             max-width: 100%;
+        }
+
+        .invoice-footer {
+            margin-top: 20px;
         }
     }
 </style>
@@ -200,7 +220,7 @@
 
 @push('scripts')
 <script>
-    // Fungsi untuk mengkonversi angka ke terbilang (sama seperti di pos.js)
+    // Fungsi untuk mengkonversi angka ke terbilang
     function numberToWords(amount) {
         const angka = Math.floor(amount);
         const bilangan = [
@@ -235,10 +255,76 @@
     }
 
     // Set terbilang
-    document.getElementById('terbilangText').innerText = numberToWords({
+    const totalAmount = {
         {
             $transaction - > total_amount
         }
-    }) + " Rupiah";
+    };
+    document.getElementById('terbilangText').innerText = numberToWords(totalAmount) + " Rupiah";
+
+    // Fungsi untuk print
+    function printReceipt() {
+        const printContent = document.getElementById('printArea').cloneNode(true);
+        const printWindow = window.open('', '_blank');
+
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Faktur Penjualan - SPARTTA POS</title>
+                <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    body {
+                        font-family: 'Courier New', 'Times New Roman', monospace;
+                        background: white;
+                        padding: 20px;
+                    }
+                    @media print {
+                        body {
+                            padding: 0;
+                            margin: 0;
+                        }
+                        .no-print {
+                            display: none;
+                        }
+                    }
+                    .no-print {
+                        text-align: center;
+                        margin-top: 20px;
+                    }
+                    .no-print button {
+                        padding: 10px 20px;
+                        margin: 5px;
+                        cursor: pointer;
+                        border: none;
+                        border-radius: 5px;
+                        font-size: 14px;
+                    }
+                    .no-print button:first-child {
+                        background: #d4af37;
+                        color: #000;
+                    }
+                    .no-print button:last-child {
+                        background: #333;
+                        color: #fff;
+                    }
+                </style>
+            </head>
+            <body>
+                ${printContent.outerHTML}
+                <div class="no-print">
+                    <button onclick="window.print()">🖨️ Cetak Faktur</button>
+                    <button onclick="window.close()">❌ Tutup</button>
+                </div>
+            </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+    }
 </script>
 @endpush

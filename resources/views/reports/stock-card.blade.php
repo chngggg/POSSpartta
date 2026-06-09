@@ -39,9 +39,9 @@
                 <input type="date" name="end_date" class="form-control" value="{{ $endDate }}">
             </div>
             <div class="col-md-1 d-flex align-items-end">
-                <button type="submit" class="btn btn-gold w-100">
+                <!-- <button type="submit" class="btn btn-gold w-100">
                     <i class="fas fa-search"></i>
-                </button>
+                </button> -->
             </div>
         </form>
     </div>
@@ -63,17 +63,17 @@
             <tbody>
                 @forelse($stockCards as $card)
                 <tr>
-                    <td data-label="Tanggal">{{ $card->date->format('d/m/Y') }}</td>
+                    <td data-label="Tanggal">{{ $card->date ? $card->date->format('d/m/Y') : '-' }}</td>
                     <td data-label="Jenis Transaksi">
                         @php
                         $typeLabels = ['purchase' => 'Pembelian', 'sale' => 'Penjualan', 'adjustment' => 'Penyesuaian', 'opname' => 'Stock Opname'];
                         @endphp
                         {{ $typeLabels[$card->reference_type] ?? ucfirst($card->reference_type) }}
                     </td>
-                    <td data-label="Stok Awal">{{ number_format($card->beginning_stock) }}</td>
-                    <td data-label="Masuk">{{ number_format($card->stock_in) }}</td>
-                    <td data-label="Keluar">{{ number_format($card->stock_out) }}</td>
-                    <td data-label="Stok Akhir">{{ number_format($card->ending_stock) }}</td>
+                    <td data-label="Stok Awal">{{ number_format($card->beginning_stock ?? 0) }}</td>
+                    <td data-label="Masuk">{{ number_format($card->stock_in ?? 0) }}</td>
+                    <td data-label="Keluar">{{ number_format($card->stock_out ?? 0) }}</td>
+                    <td data-label="Stok Akhir">{{ number_format($card->ending_stock ?? 0) }}</td>
                     <td data-label="Keterangan">{{ $card->description ?? '-' }}</td>
                 </tr>
                 @empty
@@ -92,4 +92,21 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/stock.css') }}">
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('.form-card form');
+        if (form) {
+            form.addEventListener('submit', function() {
+                const btn = this.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Loading...';
+                    btn.disabled = true;
+                }
+            });
+        }
+    });
+</script>
 @endpush

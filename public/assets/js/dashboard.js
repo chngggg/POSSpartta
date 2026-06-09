@@ -9,13 +9,29 @@ let categoryChart = null;
 document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM Loaded - Initializing Dashboard");
 
-    // Inisialisasi chart
-    initSalesChart();
-    initCategoryChart();
+    // Inisialisasi chart - CEK APAKAH ELEMEN ADA
+    if (document.getElementById("salesChart")) {
+        initSalesChart();
+    } else {
+        console.log("salesChart canvas not found, skipping...");
+    }
+
+    if (document.getElementById("categoryChart")) {
+        initCategoryChart();
+    } else {
+        console.log("categoryChart canvas not found, skipping...");
+    }
+
     initSidebarToggle();
     initTooltips();
     addLoadingAnimation();
-    initPeriodFilter();
+
+    // Period filter hanya jika ada tombol
+    if (document.querySelectorAll("[data-period]").length > 0) {
+        initPeriodFilter();
+    } else {
+        console.log("Period buttons not found, skipping...");
+    }
 
     // Auto refresh stats every 60 seconds
     setInterval(function () {
@@ -363,6 +379,8 @@ function initTooltips() {
  */
 function addLoadingAnimation() {
     const cards = document.querySelectorAll(".card-stats");
+    if (cards.length === 0) return;
+
     cards.forEach((card, index) => {
         card.style.opacity = "0";
         setTimeout(() => {
@@ -402,6 +420,8 @@ window.updateTarget = async function () {
     }
 
     const saveButton = document.querySelector("#targetModal .btn-gold");
+    if (!saveButton) return;
+
     const originalText = saveButton.innerHTML;
     saveButton.innerHTML =
         '<i class="fas fa-spinner fa-spin me-2"></i> Menyimpan...';

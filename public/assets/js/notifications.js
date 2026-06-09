@@ -52,72 +52,72 @@ class NotificationSystem {
         return newIds.some((id) => !currentIds.includes(id));
     }
 
-    renderNotifications(notifications) {
-        const container = document.getElementById("notificationList");
-        if (!container) return;
+    // renderNotifications(notifications) {
+    //     const container = document.getElementById("notificationList");
+    //     if (!container) return;
 
-        if (!notifications || notifications.length === 0) {
-            container.innerHTML = `
-                <div class="empty-notification">
-                    <i class="fas fa-bell-slash"></i>
-                    <p>Tidak ada notifikasi</p>
-                </div>
-            `;
-            return;
-        }
+    //     if (!notifications || notifications.length === 0) {
+    //         container.innerHTML = `
+    //             <div class="empty-notification">
+    //                 <i class="fas fa-bell-slash"></i>
+    //                 <p>Tidak ada notifikasi</p>
+    //             </div>
+    //         `;
+    //         return;
+    //     }
 
-        container.innerHTML = notifications
-            .map(
-                (notification) => `
-            <div class="notification-item ${!notification.is_read ? "unread" : ""}" data-id="${notification.id}">
-                <div class="d-flex gap-3">
-                    <div class="notification-icon" style="background: ${this.getColor(notification.type)}20; color: ${this.getColor(notification.type)}">
-                        <i class="fas ${this.getIcon(notification.type)}"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-title">${this.escapeHtml(notification.title)}</div>
-                        <div class="notification-message">${this.escapeHtml(notification.message)}</div>
-                        <div class="notification-time">
-                            <i class="far fa-clock me-1"></i>
-                            ${this.formatTime(notification.created_at)}
-                        </div>
-                    </div>
-                    <div class="notification-actions">
-                        ${
-                            !notification.is_read
-                                ? `
-                            <button class="btn-icon mark-read-btn" data-id="${notification.id}" title="Tandai sudah dibaca">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `
-                                : ""
-                        }
-                        <button class="btn-icon delete-btn" data-id="${notification.id}" title="Hapus">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                ${notification.link ? `<a href="${notification.link}" class="stretched-link"></a>` : ""}
-            </div>
-        `,
-            )
-            .join("");
+    //     container.innerHTML = notifications
+    //         .map(
+    //             (notification) => `
+    //         <div class="notification-item ${!notification.is_read ? "unread" : ""}" data-id="${notification.id}">
+    //             <div class="d-flex gap-3">
+    //                 <div class="notification-icon" style="background: ${this.getColor(notification.type)}20; color: ${this.getColor(notification.type)}">
+    //                     <i class="fas ${this.getIcon(notification.type)}"></i>
+    //                 </div>
+    //                 <div class="notification-content">
+    //                     <div class="notification-title">${this.escapeHtml(notification.title)}</div>
+    //                     <div class="notification-message">${this.escapeHtml(notification.message)}</div>
+    //                     <div class="notification-time">
+    //                         <i class="far fa-clock me-1"></i>
+    //                         ${this.formatTime(notification.created_at)}
+    //                     </div>
+    //                 </div>
+    //                 <div class="notification-actions">
+    //                     ${
+    //                         !notification.is_read
+    //                             ? `
+    //                         <button class="btn-icon mark-read-btn" data-id="${notification.id}" title="Tandai sudah dibaca">
+    //                             <i class="fas fa-check"></i>
+    //                         </button>
+    //                     `
+    //                             : ""
+    //                     }
+    //                     <button class="btn-icon delete-btn" data-id="${notification.id}" title="Hapus">
+    //                         <i class="fas fa-trash"></i>
+    //                     </button>
+    //                 </div>
+    //             </div>
+    //             ${notification.link ? `<a href="${notification.link}" class="stretched-link"></a>` : ""}
+    //         </div>
+    //     `,
+    //         )
+    //         .join("");
 
-        // Attach event listeners to new buttons
-        document.querySelectorAll(".mark-read-btn").forEach((btn) => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                this.markAsRead(btn.dataset.id);
-            });
-        });
+    //     // Attach event listeners to new buttons
+    //     document.querySelectorAll(".mark-read-btn").forEach((btn) => {
+    //         btn.addEventListener("click", (e) => {
+    //             e.stopPropagation();
+    //             this.markAsRead(btn.dataset.id);
+    //         });
+    //     });
 
-        document.querySelectorAll(".delete-btn").forEach((btn) => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                this.deleteNotification(btn.dataset.id);
-            });
-        });
-    }
+    //     document.querySelectorAll(".delete-btn").forEach((btn) => {
+    //         btn.addEventListener("click", (e) => {
+    //             e.stopPropagation();
+    //             this.deleteNotification(btn.dataset.id);
+    //         });
+    //     });
+    // }
 
     getColor(type) {
         const colors = {

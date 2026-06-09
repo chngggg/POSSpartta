@@ -158,7 +158,7 @@
         </nav>
 
         <!-- NOTIFICATION DROPDOWN - DIPINDAHKAN KE LUAR CONTENT -->
-        <div class="notification-global-wrapper">
+        <!-- <div class="notification-global-wrapper">
             <div class="dropdown notification-dropdown-wrapper">
                 <a href="#" class="text-decoration-none dropdown-toggle"
                     style="color: var(--text-gold);"
@@ -191,7 +191,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Main Content -->
         <div id="content">
@@ -255,8 +255,12 @@
 
     <!-- pos JS -->
     <script src="{{ asset('assets/js/pos.js') }}"></script>
+
     <!-- Users JS -->
     <script src="{{ asset('assets/js/users.js') }}"></script>
+
+    <!-- Report JS -->
+    <script src="{{ asset('assets/js/report.js') }}"></script>
 
     <!-- stock JS -->
     <script src="{{ asset('assets/js/stock.js') }}"></script>

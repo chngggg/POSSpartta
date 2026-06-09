@@ -33,10 +33,10 @@
                 @endforeach
             </div>
 
-            <div class="search-wrapper" style="margin-top: 15px;">
+            <!-- <div class="search-wrapper" style="margin-top: 15px;">
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchProducts" class="search-products" placeholder="Cari sparepart...">
-            </div>
+            </div> -->
         </div>
 
         <div class="products-grid" id="productsGrid">

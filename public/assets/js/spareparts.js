@@ -4,9 +4,21 @@
 
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Spareparts JS loaded - Version 2.0");
-    initDeleteSparepart();
-    initSearchSparepart();
-    initStockAlert();
+
+    // Hanya inisialisasi jika elemen yang diperlukan ada
+    if (document.getElementById("deleteModal")) {
+        initDeleteSparepart();
+    } else {
+        console.log("Delete modal not found on this page, skipping...");
+    }
+
+    if (document.getElementById("searchSparepart")) {
+        initSearchSparepart();
+    }
+
+    if (document.querySelectorAll(".stock-critical, .stock-low").length > 0) {
+        initStockAlert();
+    }
 });
 
 /**
@@ -15,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function initDeleteSparepart() {
     const deleteModalElement = document.getElementById("deleteModal");
     if (!deleteModalElement) {
-        console.error("Delete modal element not found!");
+        console.log("Delete modal element not found on this page");
         return;
     }
 
@@ -30,9 +42,11 @@ function initDeleteSparepart() {
     const deleteButtons = document.querySelectorAll(".delete-sparepart");
 
     if (deleteButtons.length === 0) {
-        console.warn("No delete buttons found");
+        console.log("No delete buttons found on this page");
         return;
     }
+
+    console.log(`Found ${deleteButtons.length} delete buttons`);
 
     deleteButtons.forEach((btn) => {
         btn.removeEventListener("click", handleDeleteClick);
@@ -68,10 +82,7 @@ function initDeleteSparepart() {
         deleteModal.show();
     }
 
-    // =========================
-    // 🔄 AUTO RELOAD LOGIC
-    // =========================
-
+    // Auto reload logic
     let isSubmitting = false;
 
     const deleteForm = document.getElementById("deleteForm");
@@ -135,6 +146,8 @@ function initStockAlert() {
     const lowStockItems = document.querySelectorAll(
         ".stock-critical, .stock-low",
     );
+
+    if (lowStockItems.length === 0) return;
 
     lowStockItems.forEach((item) => {
         const stock = parseInt(item.getAttribute("data-stock"));

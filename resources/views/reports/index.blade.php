@@ -56,7 +56,7 @@
                 <small class="text-muted">(Total item terjual)</small>
             </div>
         </div>
-        <div class="stat-card">
+        <!-- <div class="stat-card">
             <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;">
                 <i class="fas fa-plus-circle"></i>
             </div>
@@ -75,7 +75,7 @@
                 <p>Penyesuaian (-)</p>
                 <small class="text-muted">Koreksi kurang stok</small>
             </div>
-        </div>
+        </div> -->
     </div>
 
     <!-- Grafik Dual Axis: Penjualan (Rp) vs Barang Keluar (pcs) -->

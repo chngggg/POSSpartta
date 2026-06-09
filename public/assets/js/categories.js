@@ -41,46 +41,53 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Delete modal handling
-    const deleteModal = new bootstrap.Modal(
-        document.getElementById("deleteModal"),
-    );
-    const deleteButtons = document.querySelectorAll(".delete-category");
-    const warningMessage = document.getElementById("warningMessage");
-    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+    // Delete modal handling - CEK APAKAH ELEMEN ADA
+    const deleteModalElement = document.getElementById("deleteModal");
+    if (deleteModalElement) {
+        const deleteModal = new bootstrap.Modal(deleteModalElement);
+        const deleteButtons = document.querySelectorAll(".delete-category");
+        const warningMessage = document.getElementById("warningMessage");
+        const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
 
-    deleteButtons.forEach((btn) => {
-        btn.addEventListener("click", function () {
-            const categoryId = this.dataset.id;
-            const categoryName = this.dataset.name;
-            const hasSparepart = this.dataset.hasSparepart === "true";
+        if (deleteButtons.length > 0) {
+            deleteButtons.forEach((btn) => {
+                btn.addEventListener("click", function () {
+                    const categoryId = this.dataset.id;
+                    const categoryName = this.dataset.name;
+                    const hasSparepart = this.dataset.hasSparepart === "true";
 
-            document.getElementById("deleteCategoryName").textContent =
-                categoryName;
-            document.getElementById("deleteForm").action =
-                `/categories/${categoryId}`;
+                    document.getElementById("deleteCategoryName").textContent =
+                        categoryName;
+                    document.getElementById("deleteForm").action =
+                        `/categories/${categoryId}`;
 
-            if (hasSparepart) {
-                warningMessage.style.display = "block";
-                confirmDeleteBtn.disabled = true;
-                confirmDeleteBtn.style.opacity = "0.5";
-                confirmDeleteBtn.style.cursor = "not-allowed";
-            } else {
-                warningMessage.style.display = "none";
-                confirmDeleteBtn.disabled = false;
-                confirmDeleteBtn.style.opacity = "1";
-                confirmDeleteBtn.style.cursor = "pointer";
-            }
+                    if (warningMessage && confirmDeleteBtn) {
+                        if (hasSparepart) {
+                            warningMessage.style.display = "block";
+                            confirmDeleteBtn.disabled = true;
+                            confirmDeleteBtn.style.opacity = "0.5";
+                            confirmDeleteBtn.style.cursor = "not-allowed";
+                        } else {
+                            warningMessage.style.display = "none";
+                            confirmDeleteBtn.disabled = false;
+                            confirmDeleteBtn.style.opacity = "1";
+                            confirmDeleteBtn.style.cursor = "pointer";
+                        }
+                    }
 
-            deleteModal.show();
+                    deleteModal.show();
+                });
+            });
+        }
+    }
+
+    // Reload after modal closed - CEK APAKAH ELEMEN ADA
+    const deleteModalForReload = document.getElementById("deleteModal");
+    if (deleteModalForReload) {
+        deleteModalForReload.addEventListener("hidden.bs.modal", function () {
+            location.reload();
         });
-    });
-});
-
-const deleteModal = document.getElementById("deleteModal");
-
-deleteModal.addEventListener("hidden.bs.modal", function () {
-    location.reload();
+    }
 });
 
 window.categories = {

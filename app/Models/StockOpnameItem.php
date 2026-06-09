@@ -7,13 +7,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StockOpnameItem extends Model
 {
+    protected $table = 'stock_opname_items';
+
     protected $fillable = [
         'stock_opname_id',
         'sparepart_id',
         'system_stock',
         'physical_stock',
         'difference',
-        'notes'
+        'notes',
+        'is_counted'
     ];
 
     public function stockOpname(): BelongsTo

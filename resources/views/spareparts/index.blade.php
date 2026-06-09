@@ -67,7 +67,7 @@
     </div>
 
     <!-- Search Bar -->
-    <div class="search-bar">
+    <!-- <div class="search-bar">
         <div class="search-input-wrapper">
             <i class="fas fa-search"></i>
             <input type="text"
@@ -76,7 +76,7 @@
                 placeholder="Cari sparepart berdasarkan kode atau nama..."
                 value="{{ request('search') }}">
         </div>
-    </div>
+    </div> -->
 
     <!-- Premium Table -->
     <div class="table-premium-container">

@@ -16,7 +16,7 @@
     </div>
 
     <!-- Filter Section -->
-    <div class="filter-section">
+    <!-- <div class="filter-section">
         <div class="search-wrapper">
             <i class="fas fa-search"></i>
             <input type="text" id="searchSparepart" class="search-input" placeholder="Cari sparepart...">
@@ -29,7 +29,7 @@
                 <i class="fas fa-times me-1"></i> Batal Pilih
             </button>
         </div>
-    </div>
+    </div> -->
 
     <!-- Sparepart List -->
     <div class="sparepart-list-container">

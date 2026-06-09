@@ -43,9 +43,9 @@
                         </div>
                         @endif
                     </div>
-                    <button type="button" class="btn-upload" id="upload_btn">
+                    <!-- <button type="button" class="btn-upload" id="upload_btn">
                         <i class="fas fa-camera me-1"></i> Ganti Foto
-                    </button>
+                    </button> -->
                     <input type="file" id="avatar_input" accept="image/*" style="display: none;">
 
                     <div class="mt-4">
