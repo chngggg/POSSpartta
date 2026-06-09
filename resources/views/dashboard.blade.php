@@ -108,7 +108,7 @@
             </h6>
             <p class="text-muted small mb-3">Buat barcode baru untuk sparepart</p>
             <div class="d-grid">
-                <a href="{{ route('barcode.generate') }}" class="btn btn-gold">
+                <a href="{{ route('barcode.generate') }}" class="btn btn-outline-gold">
                     <i class="fas fa-plus-circle me-2"></i>Generate Barcode
                 </a>
             </div>
@@ -120,14 +120,14 @@
                 <i class="fas fa-qrcode me-2"></i>
                 Scan Barcode
             </h6>
-            <p class="text-muted small mb-3">Stock opname via barcode scanner</p>
+            <p class="text-muted small mb-3">Penjualan langsung via barcode scanner</p>
             <div class="d-grid">
-                <a href="{{ route('stock-opname.index') }}" class="btn btn-outline-gold">
+                <a href="{{ route('pos.index') }}" class="btn btn-outline-gold">
                     <i class="fas fa-camera me-2"></i>Scan Barcode
                 </a>
             </div>
             <small class="text-muted d-block mt-3 text-center">
-                <i class="fas fa-boxes me-1"></i>Stock Opname
+                <i class="fas fa-shopping-cart me-1"></i>Point of Sale
             </small>
         </div>
     </div>

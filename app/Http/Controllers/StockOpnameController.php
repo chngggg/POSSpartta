@@ -85,6 +85,69 @@ class StockOpnameController extends Controller
         }
     }
 
+    public function edit($id)
+    {
+        $stockOpname = StockOpname::with('items.sparepart')->where('status', 'draft')->findOrFail($id);
+        return view('stock-opname.edit', compact('stockOpname'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $stockOpname = StockOpname::where('status', 'draft')->findOrFail($id);
+
+        $request->validate([
+            'period' => 'required|string',
+            'items' => 'required|array',
+            'items.*.physical_stock' => 'required|integer|min:0',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $status = $request->input('status', 'draft');
+
+            $stockOpname->update([
+                'period' => $request->period,
+                'status' => $status,
+                'notes' => $request->notes
+            ]);
+
+            foreach ($request->items as $index => $item) {
+                $opnameItem = StockOpnameItem::where('stock_opname_id', $stockOpname->id)
+                    ->where('sparepart_id', $item['sparepart_id'])
+                    ->first();
+
+                if ($opnameItem) {
+                    $sparepart = Sparepart::find($item['sparepart_id']);
+                    $physicalStock = $item['physical_stock'];
+                    $difference = $physicalStock - $opnameItem->system_stock;
+
+                    $opnameItem->update([
+                        'physical_stock' => $physicalStock,
+                        'difference' => $difference,
+                        'notes' => $item['notes'] ?? null,
+                    ]);
+
+                    // Update stok jika finalisasi
+                    if ($status === 'completed') {
+                        $sparepart->update(['stock' => $physicalStock]);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            $message = $status === 'draft'
+                ? 'Stock opname berhasil diupdate!'
+                : 'Stock opname selesai! Stok telah diperbarui.';
+
+            return redirect()->route('stock-opname.index')->with('success', $message);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
     public function show($id)
     {
         $stockOpname = StockOpname::with('items.sparepart', 'creator')->findOrFail($id);
@@ -110,21 +173,15 @@ class StockOpnameController extends Controller
         return view('stock-opname.print', compact('stockOpname'));
     }
 
-    /**
-     * Export stock opname to Excel/CSV
-     */
     public function exportExcel($id)
     {
         $stockOpname = StockOpname::with('items.sparepart')->findOrFail($id);
 
-        // Prepare data for CSV
         $filename = 'stock-opname-' . $stockOpname->opname_number . '.csv';
         $handle = fopen('php://temp', 'w+');
 
-        // Add headers (UTF-8 BOM for Excel compatibility)
         fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-        // Header row
         fputcsv($handle, [
             'No',
             'Kode',
@@ -135,7 +192,6 @@ class StockOpnameController extends Controller
             'Status'
         ]);
 
-        // Data rows
         foreach ($stockOpname->items as $index => $item) {
             $status = $item->difference == 0 ? 'Sesuai' : ($item->difference > 0 ? 'Kelebihan' : 'Kekurangan');
             fputcsv($handle, [

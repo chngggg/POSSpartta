@@ -13,6 +13,7 @@
                     <i class="fas fa-history me-1"></i> History Transaksi
                 </a>
             </div>
+            <br>
             <div class="barcode-scanner">
                 <input type="text" id="barcodeInput" placeholder="Scan atau ketik barcode..." autofocus>
                 <button onclick="addProductByBarcode(document.getElementById('barcodeInput').value)">

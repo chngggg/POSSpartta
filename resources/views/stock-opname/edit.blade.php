@@ -1,16 +1,16 @@
 @extends('layouts.master')
 
-@section('title', 'Tambah Stock Opname')
+@section('title', 'Edit Stock Opname')
 
 @section('content')
 <div class="stock-container">
     <div class="page-header">
         <div>
             <h4>
-                <i class="fas fa-plus-circle me-2"></i>
-                Stock Opname Baru
+                <i class="fas fa-edit me-2"></i>
+                Edit Stock Opname
             </h4>
-            <p class="text-muted">Lakukan perhitungan fisik barang (stock opname)</p>
+            <p class="text-muted">{{ $stockOpname->opname_number }}</p>
         </div>
         <a href="{{ route('stock-opname.index') }}" class="btn btn-outline-gold">
             <i class="fas fa-arrow-left me-2"></i> Kembali
@@ -18,27 +18,39 @@
     </div>
 
     <div class="form-card">
-        <form id="stockOpnameForm" method="POST" action="{{ route('stock-opname.store') }}">
+        <form id="stockOpnameForm" method="POST" action="{{ route('stock-opname.update', $stockOpname) }}">
             @csrf
+            @method('PUT')
 
             <div class="row mb-4">
                 <div class="col-md-4">
                     <div class="form-group">
+                        <label>Nomor Opname</label>
+                        <input type="text" class="form-control" value="{{ $stockOpname->opname_number }}" readonly disabled>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Tanggal Opname</label>
+                        <input type="text" class="form-control" value="{{ $stockOpname->opname_date->format('d/m/Y') }}" readonly disabled>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
                         <label for="period">Periode Opname <span class="text-danger">*</span></label>
                         <input type="month" class="form-control @error('period') is-invalid @enderror"
-                            id="period" name="period" value="{{ old('period', date('Y-m')) }}" required>
+                            id="period" name="period" value="{{ old('period', $stockOpname->period) }}" required>
                         @error('period')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
-                <div class="col-md-8">
-                    <div class="form-group">
-                        <label for="notes">Catatan</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="1"
-                            placeholder="Catatan tentang stock opname (opsional)">{{ old('notes') }}</textarea>
-                    </div>
-                </div>
+            </div>
+
+            <div class="form-group mb-4">
+                <label for="notes">Catatan</label>
+                <textarea class="form-control" id="notes" name="notes" rows="2"
+                    placeholder="Catatan tentang stock opname (opsional)">{{ old('notes', $stockOpname->notes) }}</textarea>
             </div>
 
             <div class="table-responsive">
@@ -53,25 +65,30 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($spareparts as $index => $sparepart)
+                        @foreach($stockOpname->items as $index => $item)
                         <tr>
                             <td data-label="Kode">
-                                <code>{{ $sparepart->code }}</code>
-                                <input type="hidden" name="items[{{ $index }}][sparepart_id]" value="{{ $sparepart->id }}">
+                                <code>{{ $item->sparepart->code }}</code>
+                                <input type="hidden" name="items[{{ $index }}][sparepart_id]" value="{{ $item->sparepart_id }}">
                             </td>
-                            <td data-label="Nama Barang">{{ $sparepart->name }}</td>
-                            <td data-label="Stok Sistem" class="system-stock" data-stock="{{ $sparepart->stock }}">
-                                {{ number_format($sparepart->stock) }} pcs
+                            <td data-label="Nama Barang">{{ $item->sparepart->name }}</td>
+                            <td data-label="Stok Sistem" class="system-stock" data-stock="{{ $item->system_stock }}">
+                                {{ number_format($item->system_stock) }} pcs
                             </td>
                             <td data-label="Stok Fisik">
                                 <input type="number"
                                     name="items[{{ $index }}][physical_stock]"
                                     class="form-control physical-stock"
-                                    data-system="{{ $sparepart->stock }}"
+                                    data-system="{{ $item->system_stock }}"
                                     style="width: 120px"
-                                    value="{{ old("items.{$index}.physical_stock", $sparepart->stock) }}">
+                                    value="{{ old("items.{$index}.physical_stock", $item->physical_stock) }}">
                             </td>
-                            <td data-label="Selisih" class="diff-cell">0</td>
+                            <td data-label="Selisih" class="diff-cell">
+                                @php
+                                $diff = $item->physical_stock - $item->system_stock;
+                                @endphp
+                                {{ $diff >= 0 ? '+' : '' }}{{ $diff }}
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -79,10 +96,10 @@
             </div>
 
             <div class="form-actions mt-4">
-                <button type="submit" name="status" value="draft" class="btn btn-outline-gold" id="draftBtn">
+                <button type="submit" name="status" value="draft" class="btn btn-outline-gold">
                     <i class="fas fa-save me-2"></i> Simpan Draft
                 </button>
-                <button type="submit" name="status" value="completed" class="btn btn-gold" id="finalizeBtn">
+                <button type="submit" name="status" value="completed" class="btn btn-gold">
                     <i class="fas fa-check-circle me-2"></i> Finalisasi
                 </button>
                 <a href="{{ route('stock-opname.index') }}" class="btn btn-outline-gold">
@@ -97,7 +114,6 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Inisialisasi perhitungan selisih
         const inputs = document.querySelectorAll('.physical-stock');
 
         const calculateDifference = (input) => {
@@ -115,42 +131,30 @@
         };
 
         inputs.forEach(input => {
-            calculateDifference(input);
             input.addEventListener('input', function() {
                 calculateDifference(this);
             });
         });
 
-        // Validasi form sebelum submit
         const form = document.getElementById('stockOpnameForm');
 
         form.addEventListener('submit', function(e) {
             const submitter = e.submitter;
             const status = submitter ? submitter.value : null;
 
-            // Jika draft, langsung submit tanpa validasi
             if (status === 'draft') {
                 return true;
             }
 
-            // Jika finalisasi, validasi semua stok fisik harus terisi
             const physicalInputs = document.querySelectorAll('.physical-stock');
             let hasEmpty = false;
-            let hasInvalid = false;
 
             physicalInputs.forEach(input => {
-                const val = input.value.trim();
-                if (val === '' || val === null) {
+                if (input.value.trim() === '') {
                     hasEmpty = true;
                     input.classList.add('is-invalid');
                 } else {
                     input.classList.remove('is-invalid');
-                }
-
-                const numVal = parseInt(val);
-                if (isNaN(numVal) || numVal < 0) {
-                    hasInvalid = true;
-                    input.classList.add('is-invalid');
                 }
             });
 
@@ -158,23 +162,10 @@
                 e.preventDefault();
                 if (window.stock && window.stock.showToast) {
                     window.stock.showToast('Mohon isi semua stok fisik sebelum finalisasi!', 'error');
-                } else {
-                    alert('Mohon isi semua stok fisik sebelum finalisasi!');
                 }
                 return false;
             }
 
-            if (hasInvalid) {
-                e.preventDefault();
-                if (window.stock && window.stock.showToast) {
-                    window.stock.showToast('Stok fisik tidak boleh negatif!', 'error');
-                } else {
-                    alert('Stok fisik tidak boleh negatif!');
-                }
-                return false;
-            }
-
-            // Konfirmasi finalisasi
             if (status === 'completed') {
                 if (!confirm('Anda yakin ingin memfinalisasi stock opname ini?\n\nStok barang akan diperbarui sesuai stok fisik dan tidak dapat diubah kembali!')) {
                     e.preventDefault();

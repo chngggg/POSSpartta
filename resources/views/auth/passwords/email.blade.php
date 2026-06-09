@@ -4,6 +4,7 @@
 
 @section('content')
 <style>
+    /* (CSS tetap sama seperti yang sudah kamu punya) */
     .forgot-page {
         min-height: 100vh;
         background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
@@ -167,10 +168,6 @@
         display: flex;
         align-items: center;
         gap: 10px;
-    }
-
-    .alert-success i {
-        font-size: 1.1rem;
     }
 
     .alert-danger {

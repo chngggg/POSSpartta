@@ -49,6 +49,7 @@ Route::middleware(['auth'])->group(function () {
     // -----------------------------------------
     Route::get('/api/dashboard/stats', [DashboardController::class, 'getStats'])->name('api.dashboard.stats');
     Route::post('/dashboard/update-target', [DashboardController::class, 'updateTarget'])->name('dashboard.update-target');
+
     // -----------------------------------------
     // Barcode Routes - Semua role bisa akses
     // -----------------------------------------
@@ -75,12 +76,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos/search-by-barcode', [PosController::class, 'getByBarcode'])->name('pos.search-by-barcode');
     Route::get('/pos/generate-qris', [PosController::class, 'generateQRIS'])->name('pos.generate-qris');
 
-    // Stock Opname Routes - SEDERHANA
+    // =============================================
+    // STOCK OPNAME ROUTES (LENGKAP)
+    // =============================================
     Route::prefix('stock-opname')->name('stock-opname.')->middleware(['auth'])->group(function () {
         Route::get('/', [StockOpnameController::class, 'index'])->name('index');
         Route::get('/create', [StockOpnameController::class, 'create'])->name('create');
         Route::post('/', [StockOpnameController::class, 'store'])->name('store');
         Route::get('/{id}', [StockOpnameController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [StockOpnameController::class, 'edit'])->name('edit');      // TAMBAHKAN
+        Route::put('/{id}', [StockOpnameController::class, 'update'])->name('update');      // TAMBAHKAN
         Route::delete('/{id}', [StockOpnameController::class, 'destroy'])->name('destroy');
         Route::get('/{id}/print', [StockOpnameController::class, 'print'])->name('print');
         Route::get('/{id}/export', [StockOpnameController::class, 'exportExcel'])->name('export');

@@ -69,6 +69,12 @@
         margin-bottom: 8px;
     }
 
+    .reset-header p {
+        color: #c0c0c0;
+        font-size: 0.85rem;
+        margin-top: 8px;
+    }
+
     .reset-body {
         padding: 32px;
     }
@@ -108,6 +114,10 @@
         box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
     }
 
+    .form-control::placeholder {
+        color: #6c6c6c;
+    }
+
     .btn-reset {
         width: 100%;
         padding: 12px;
@@ -119,7 +129,7 @@
         font-weight: 700;
         cursor: pointer;
         transition: all 0.3s ease;
-        margin-top: 8px;
+        margin-bottom: 20px;
     }
 
     .btn-reset:hover {
@@ -159,6 +169,36 @@
         gap: 10px;
     }
 
+    .alert-success {
+        background: rgba(46, 204, 113, 0.1);
+        border: 1px solid rgba(46, 204, 113, 0.3);
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 24px;
+        color: #2ecc71;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .password-strength {
+        margin-top: 8px;
+        font-size: 0.75rem;
+    }
+
+    .strength-weak {
+        color: #e74c3c;
+    }
+
+    .strength-medium {
+        color: #f39c12;
+    }
+
+    .strength-strong {
+        color: #2ecc71;
+    }
+
     @media (max-width: 768px) {
         .reset-card {
             margin: 20px;
@@ -183,9 +223,17 @@
     <div class="reset-card">
         <div class="reset-header">
             <h1>Reset Password</h1>
+            <p>Buat password baru untuk akun Anda</p>
         </div>
 
         <div class="reset-body">
+            @if (session('status'))
+            <div class="alert-success">
+                <i class="fas fa-check-circle"></i>
+                {{ session('status') }}
+            </div>
+            @endif
+
             @if ($errors->any())
             <div class="alert-danger">
                 <i class="fas fa-exclamation-circle"></i>
@@ -198,7 +246,7 @@
 
                 <input type="hidden" name="token" value="{{ $token }}">
 
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="email">
                         <i class="fas fa-envelope"></i> Email Address
                     </label>
@@ -206,8 +254,9 @@
                         class="form-control @error('email') is-invalid @enderror"
                         name="email" value="{{ $email ?? old('email') }}"
                         placeholder="masukkan@email.com"
+                        readonly
                         required>
-                </div>
+                </div> -->
 
                 <div class="form-group">
                     <label for="password">
@@ -216,8 +265,9 @@
                     <input id="password" type="password"
                         class="form-control @error('password') is-invalid @enderror"
                         name="password"
-                        placeholder="Minimal 6 karakter"
+                        placeholder="Minimal 8 karakter"
                         required>
+                    <div class="password-strength" id="passwordStrength"></div>
                 </div>
 
                 <div class="form-group">
@@ -229,6 +279,7 @@
                         name="password_confirmation"
                         placeholder="Ulangi password baru"
                         required>
+                    <div id="passwordMatch" style="font-size: 0.75rem; margin-top: 5px;"></div>
                 </div>
 
                 <button type="submit" class="btn-reset">
@@ -245,4 +296,58 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Password strength checker
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('password-confirm');
+    const strengthDiv = document.getElementById('passwordStrength');
+    const matchDiv = document.getElementById('passwordMatch');
+
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (password.match(/[a-z]+/)) strength++;
+        if (password.match(/[A-Z]+/)) strength++;
+        if (password.match(/[0-9]+/)) strength++;
+        if (password.match(/[$@#&!]+/)) strength++;
+
+        if (password.length === 0) return {
+            text: '',
+            class: ''
+        };
+        if (strength <= 2) return {
+            text: '❌ Password lemah',
+            class: 'strength-weak'
+        };
+        if (strength <= 4) return {
+            text: '⚠️ Password sedang',
+            class: 'strength-medium'
+        };
+        return {
+            text: '✅ Password kuat',
+            class: 'strength-strong'
+        };
+    }
+
+    function checkPasswordMatch() {
+        if (confirmInput.value.length === 0) {
+            matchDiv.innerHTML = '';
+            return;
+        }
+        if (passwordInput.value === confirmInput.value) {
+            matchDiv.innerHTML = '<span style="color: #2ecc71;">✓ Password cocok</span>';
+        } else {
+            matchDiv.innerHTML = '<span style="color: #e74c3c;">✗ Password tidak cocok</span>';
+        }
+    }
+
+    passwordInput.addEventListener('input', function() {
+        const result = checkPasswordStrength(this.value);
+        strengthDiv.innerHTML = `<span class="${result.class}">${result.text}</span>`;
+        checkPasswordMatch();
+    });
+
+    confirmInput.addEventListener('input', checkPasswordMatch);
+</script>
 @endsection

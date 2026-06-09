@@ -38,12 +38,12 @@
                         <code>{{ $opname->opname_number }}</code>
                     </td>
                     <td data-label="Tanggal">{{ $opname->opname_date->format('d/m/Y') }}</td>
-                    <td data-label="Periode">{{ $opname->period }}</a>
+                    <td data-label="Periode">{{ $opname->period }}</td>
                     <td data-label="Status">
                         <span class="status-badge status-{{ $opname->status }}">
                             {{ $opname->status == 'draft' ? 'Draft' : 'Selesai' }}
                         </span>
-                        </a>
+                    </td>
                     <td data-label="Aksi">
                         <div class="action-buttons">
                             <a href="{{ route('stock-opname.show', $opname) }}" class="btn-icon view" title="Detail">
@@ -52,6 +52,13 @@
                             <a href="{{ route('stock-opname.print', $opname) }}" class="btn-icon" title="Print" target="_blank">
                                 <i class="fas fa-print"></i>
                             </a>
+
+                            @if($opname->status == 'draft')
+                            <a href="{{ route('stock-opname.edit', $opname) }}" class="btn-icon edit" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            @endif
+
                             <button type="button" class="btn-icon delete delete-item"
                                 data-id="{{ $opname->id }}"
                                 data-name="{{ $opname->opname_number }}"
@@ -59,7 +66,7 @@
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
-                        </a>
+                    </td>
                 </tr>
                 @empty
                 <tr>
@@ -72,10 +79,10 @@
                                 <i class="fas fa-plus-circle me-2"></i>Buat Stock Opname Pertama
                             </a>
                         </div>
-                        </a>
-        </table>
-        @endforelse
-        </tbody>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
         </table>
 
         @if($stockOpnames->hasPages())
@@ -85,9 +92,52 @@
         @endif
     </div>
 </div>
-
-
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delete handler
+        const deleteModalElement = document.getElementById('deleteModal');
+        if (deleteModalElement) {
+            const deleteModal = new bootstrap.Modal(deleteModalElement);
+            const deleteButtons = document.querySelectorAll('.delete-item');
+            const deleteForm = document.getElementById('deleteForm');
+            const deleteItemName = document.getElementById('deleteItemName');
+
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+
+                    if (deleteItemName) {
+                        deleteItemName.textContent = name;
+                    }
+
+                    if (deleteForm) {
+                        // Perbaiki URL di sini
+                        deleteForm.action = `/stock-opname/${id}`;
+                        deleteForm.method = 'POST';
+
+                        // Pastikan method DELETE ada
+                        let methodInput = deleteForm.querySelector('input[name="_method"]');
+                        if (!methodInput) {
+                            methodInput = document.createElement('input');
+                            methodInput.type = 'hidden';
+                            methodInput.name = '_method';
+                            deleteForm.appendChild(methodInput);
+                        }
+                        methodInput.value = 'DELETE';
+                    }
+
+                    deleteModal.show();
+                });
+            });
+        }
+    });
+</script>
+@endpush
+
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -114,23 +164,3 @@
         </div>
     </div>
 </div>
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Delete handler
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        const deleteButtons = document.querySelectorAll('.delete-item');
-
-        deleteButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const name = this.dataset.name;
-                document.getElementById('deleteItemName').textContent = name;
-                document.getElementById('deleteForm').action = `/stock-opname/${id}`;
-                deleteModal.show();
-            });
-        });
-    });
-</script>
-@endpush
