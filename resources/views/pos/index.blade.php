@@ -3,22 +3,21 @@
 @section('title', 'Kasir / POS')
 
 @section('content')
-<!-- Header di LUAR pos-container -->
-<div class="page-header" style="margin-bottom: 24px;">
-    <div>
-        <h4>
-            <i class="fas fa-shopping-cart me-2"></i>
-            Point of Sale
-        </h4>
-        <p class="text-muted">Pilih sparepart untuk menambahkan ke keranjang</p>
-    </div>
-    <a href="{{ route('reports.index') }}" class="btn btn-outline-gold no-print">
-        <i class="fas fa-history me-2"></i> History Transaksi
-    </a>
-</div>
-
 <!-- POS Container (untuk 2 kolom) -->
 <div class="pos-container">
+    <!-- Header -->
+    <div class="page-header" style="margin-bottom: 24px;">
+        <div>
+            <h4>
+                <i class="fas fa-shopping-cart me-2"></i>
+                Point of Sale
+            </h4>
+            <p class="text-muted">Pilih sparepart untuk menambahkan ke keranjang</p>
+        </div>
+        <a href="{{ route('reports.index') }}" class="btn btn-outline-gold no-print">
+            <i class="fas fa-history me-2"></i> History Transaksi
+        </a>
+    </div>
     <!-- LEFT PANEL - Products -->
     <div class="pos-products">
         <div class="products-header">

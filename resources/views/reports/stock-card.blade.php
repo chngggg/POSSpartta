@@ -39,9 +39,9 @@
                 <input type="date" name="end_date" class="form-control" value="{{ $endDate }}">
             </div>
             <div class="col-md-1 d-flex align-items-end">
-                <!-- <button type="submit" class="btn btn-gold w-100">
+                <button type="submit" class="btn btn-gold w-100">
                     <i class="fas fa-search"></i>
-                </button> -->
+                </button>
             </div>
         </form>
     </div>

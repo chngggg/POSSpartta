@@ -28,25 +28,28 @@ class ReportController extends Controller
         $year = substr($period, 0, 4);
         $month = substr($period, 5, 2);
 
-        // Ringkasan Stock Opname
+        // =============================================
+        // RINGKASAN STOCK OPNAME (berdasarkan period)
+        // =============================================
         $stockOpname = StockOpname::where('period', $period)->first();
 
-        // Total Penjualan (Nilai uang dari transaksi)
+        // =============================================
+        // TOTAL PENJUALAN (Rp) - Terfilter
+        // =============================================
         $totalSales = Transaction::whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->sum('total_amount');
 
-        // Barang Keluar (Jumlah item yang terjual) untuk periode yang dipilih
+        // =============================================
+        // BARANG KELUAR (pcs) - Terfilter
+        // =============================================
         $transactions = Transaction::whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->get();
 
         $totalOutgoingQuantity = 0;
         foreach ($transactions as $transaction) {
-            $items = $transaction->items;
-            if (is_string($items)) {
-                $items = json_decode($items, true);
-            }
+            $items = is_string($transaction->items) ? json_decode($transaction->items, true) : $transaction->items;
             if (is_array($items)) {
                 foreach ($items as $item) {
                     $totalOutgoingQuantity += $item['quantity'] ?? 0;
@@ -54,27 +57,24 @@ class ReportController extends Controller
             }
         }
 
-        // Data untuk grafik dual axis - PER BULAN
-        $monthlySales = []; // Nominal penjualan per bulan (Rp)
-        $monthlyOutgoingQuantities = []; // Barang keluar per bulan (pcs)
+        // =============================================
+        // GRAFIK DUAL AXIS (Hanya untuk tahun yang dipilih)
+        // =============================================
+        $monthlySales = [];
+        $monthlyOutgoingQuantities = [];
 
         for ($i = 1; $i <= 12; $i++) {
-            // Nominal penjualan per bulan
             $monthlySales[$i] = Transaction::whereYear('created_at', $year)
                 ->whereMonth('created_at', $i)
                 ->sum('total_amount');
 
-            // Barang keluar per bulan (jumlah item)
             $transactionsPerMonth = Transaction::whereYear('created_at', $year)
                 ->whereMonth('created_at', $i)
                 ->get();
 
             $outgoingQty = 0;
             foreach ($transactionsPerMonth as $transaction) {
-                $items = $transaction->items;
-                if (is_string($items)) {
-                    $items = json_decode($items, true);
-                }
+                $items = is_string($transaction->items) ? json_decode($transaction->items, true) : $transaction->items;
                 if (is_array($items)) {
                     foreach ($items as $item) {
                         $outgoingQty += $item['quantity'] ?? 0;
@@ -84,7 +84,9 @@ class ReportController extends Controller
             $monthlyOutgoingQuantities[$i] = $outgoingQty;
         }
 
-        // Total Penyesuaian Stok
+        // =============================================
+        // TOTAL PENYESUAIAN STOK - Terfilter
+        // =============================================
         $totalAdjustmentIn = DB::table('stock_adjustment_items')
             ->join('stock_adjustments', 'stock_adjustment_items.stock_adjustment_id', '=', 'stock_adjustments.id')
             ->where('stock_adjustments.type', 'in')
@@ -99,11 +101,19 @@ class ReportController extends Controller
             ->whereMonth('stock_adjustments.adjustment_date', $month)
             ->sum('stock_adjustment_items.quantity');
 
-        // Top 10 sparepart stok terbanyak
+        // =============================================
+        // TOP 10 SPAREPART STOK TERBANYAK (tidak terfilter periode)
+        // =============================================
         $topSpareparts = Sparepart::orderBy('stock', 'desc')->take(10)->get();
 
-        // History Penjualan (10 terbaru)
-        $recentTransactions = Transaction::orderBy('created_at', 'desc')->take(10)->get();
+        // =============================================
+        // HISTORY PENJUALAN - Sekarang TERFILTER berdasarkan periode
+        // =============================================
+        $recentTransactions = Transaction::whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
 
         return view('reports.index', compact(
             'period',

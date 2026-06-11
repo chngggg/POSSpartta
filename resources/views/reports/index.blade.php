@@ -12,11 +12,11 @@
             </h4>
             <p class="text-muted">Ringkasan laporan inventory dan keuangan</p>
         </div>
-        <div class="header-actions">
+        <!-- <div class="header-actions">
             <a href="{{ route('reports.stock-card') }}" class="btn btn-outline-gold">
                 <i class="fas fa-print me-2"></i> Laporan Kartu Stok
             </a>
-        </div>
+        </div> -->
     </div>
 
     <!-- Filter Periode -->
