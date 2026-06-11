@@ -3,17 +3,26 @@
 @section('title', 'Kasir / POS')
 
 @section('content')
+<!-- Header di LUAR pos-container -->
+<div class="page-header" style="margin-bottom: 24px;">
+    <div>
+        <h4>
+            <i class="fas fa-shopping-cart me-2"></i>
+            Point of Sale
+        </h4>
+        <p class="text-muted">Pilih sparepart untuk menambahkan ke keranjang</p>
+    </div>
+    <a href="{{ route('reports.index') }}" class="btn btn-outline-gold no-print">
+        <i class="fas fa-history me-2"></i> History Transaksi
+    </a>
+</div>
+
+<!-- POS Container (untuk 2 kolom) -->
 <div class="pos-container">
     <!-- LEFT PANEL - Products -->
     <div class="pos-products">
         <div class="products-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5><i class="fas fa-barcode"></i> Scan Barcode</h5>
-                <a href="{{ route('reports.index') }}" class="btn btn-outline-gold btn-sm">
-                    <i class="fas fa-history me-1"></i> History Transaksi
-                </a>
-            </div>
-            <br>
+            <h5><i class="fas fa-barcode me-2"></i> Scan Barcode</h5>
             <div class="barcode-scanner">
                 <input type="text" id="barcodeInput" placeholder="Scan atau ketik barcode..." autofocus>
                 <button onclick="addProductByBarcode(document.getElementById('barcodeInput').value)">
@@ -22,7 +31,7 @@
             </div>
         </div>
 
-        <div class="products-header" style="border-top: none;">
+        <div class="products-header" style="border-top: none; padding-top: 0;">
             <div class="category-filter" id="categoryFilter">
                 <button class="filter-chip active" onclick="filterByCategory('all', this)">
                     <i class="fas fa-th-large"></i> Semua
@@ -33,11 +42,6 @@
                 </button>
                 @endforeach
             </div>
-
-            <!-- <div class="search-wrapper" style="margin-top: 15px;">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchProducts" class="search-products" placeholder="Cari sparepart...">
-            </div> -->
         </div>
 
         <div class="products-grid" id="productsGrid">
@@ -63,7 +67,7 @@
     <!-- RIGHT PANEL - Cart -->
     <div class="pos-cart">
         <div class="cart-header">
-            <h5><i class="fas fa-shopping-cart"></i> Keranjang Belanja</h5>
+            <h5><i class="fas fa-shopping-cart me-2"></i> Keranjang Belanja</h5>
         </div>
 
         <div class="cart-items" id="cartItems">
@@ -90,10 +94,10 @@
 
             <div class="cart-actions">
                 <button class="btn btn-gold btn-process" onclick="processTransaction()">
-                    <i class="fas fa-check-circle"></i> Proses Pembayaran
+                    <i class="fas fa-check-circle me-2"></i> Proses Pembayaran
                 </button>
                 <button class="btn btn-clear" onclick="clearCart()">
-                    <i class="fas fa-trash-alt"></i> Kosongkan
+                    <i class="fas fa-trash-alt me-2"></i> Kosongkan
                 </button>
             </div>
         </div>

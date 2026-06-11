@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Dashboard Laporan')
+@section('title', 'Laporan')
 
 @section('content')
 <div class="stock-container">
@@ -8,7 +8,7 @@
         <div>
             <h4>
                 <i class="fas fa-chart-line me-2"></i>
-                Dashboard Laporan
+                Laporan
             </h4>
             <p class="text-muted">Ringkasan laporan inventory dan keuangan</p>
         </div>
