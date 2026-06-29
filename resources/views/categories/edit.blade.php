@@ -75,7 +75,7 @@
                     Status
                 </label>
                 <select class="form-control @error('is_active') is-invalid @enderror" id="is_active" name="is_active">
-                    <option value="1" {{ old('is_active', $category->is_active) == 1 ? 'selected' : '' }}>Aktif</option>
+                    <option value="1" {{ old('is_active', $category->is_active) == 1 ? 'selected' : '' }}>Tersedia</option>
                     <option value="0" {{ old('is_active', $category->is_active) == 0 ? 'selected' : '' }}>Nonaktif</option>
                 </select>
                 <small class="text-muted">Kategori nonaktif tidak akan ditampilkan di beberapa menu</small>

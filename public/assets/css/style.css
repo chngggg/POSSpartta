@@ -630,7 +630,17 @@ body::before {
         transform: translateY(0);
     }
 }
+/* Tambahkan class untuk animasi */
+.animate-on-load {
+    animation: fadeInUp 0.5s ease forwards;
+}
 
+/* Atau langsung ke dashboard-welcome */
+.dashboard-welcome,
+.row > .col-lg-4 .chart-container:first-child,
+.row > .col-lg-8 .chart-container:first-child {
+    animation: fadeInUp 0.5s ease forwards;
+}
 .card-stats,
 .chart-container {
     animation: fadeInUp 0.5s ease forwards;

@@ -78,47 +78,6 @@
         </div> -->
     </div>
 
-    <!-- Grafik Dual Axis: Penjualan (Rp) vs Barang Keluar (pcs) -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="chart-container">
-                <h6><i class="fas fa-chart-line me-2"></i> Grafik Penjualan vs Barang Keluar (Per Bulan)</h6>
-                <canvas id="salesVsOutgoingChart" height="350"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Top 10 Sparepart Stok Terbanyak -->
-    <div class="table-premium-container mt-4">
-        <h6 class="p-3"><i class="fas fa-trophy me-2"></i> Top 10 Sparepart Stok Terbanyak</h6>
-        <table class="table-premium">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Kode</th>
-                    <th>Nama Sparepart</th>
-                    <th>Stok Tersedia</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($topSpareparts ?? [] as $index => $item)
-                <tr>
-                    <td data-label="No">{{ $loop->iteration }}</td>
-                    <td data-label="Kode">{{ $item->code }}</td>
-                    <td data-label="Nama Sparepart">{{ $item->name }}</td>
-                    <td data-label="Stok Tersedia">{{ number_format($item->stock) }} pcs</a>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="4" class="text-center py-4">
-                        <i class="fas fa-database"></i> Belum ada data sparepart
-                        </a>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
     <!-- History Penjualan Terbaru -->
     <div class="table-premium-container mt-4">
         <h6 class="p-3"><i class="fas fa-history me-2"></i> History Penjualan Terbaru</h6>
@@ -161,6 +120,49 @@
             </tbody>
         </table>
     </div>
+    <br>
+
+    <!-- Grafik Dual Axis: Penjualan (Rp) vs Barang Keluar (pcs) -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="chart-container">
+                <h6><i class="fas fa-chart-line me-2"></i> Grafik Penjualan vs Barang Keluar (Per Bulan)</h6>
+                <canvas id="salesVsOutgoingChart" height="350"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 10 Sparepart Stok Terbanyak -->
+    <div class="table-premium-container mt-4">
+        <h6 class="p-3"><i class="fas fa-trophy me-2"></i> Top 10 Sparepart Stok Terbanyak</h6>
+        <table class="table-premium">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Kode</th>
+                    <th>Nama Sparepart</th>
+                    <th>Stok Tersedia</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($topSpareparts ?? [] as $index => $item)
+                <tr>
+                    <td data-label="No">{{ $loop->iteration }}</td>
+                    <td data-label="Kode">{{ $item->code }}</td>
+                    <td data-label="Nama Sparepart">{{ $item->name }}</td>
+                    <td data-label="Stok Tersedia">{{ number_format($item->stock) }} pcs</a>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="4" class="text-center py-4">
+                        <i class="fas fa-database"></i> Belum ada data sparepart
+                        </a>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
 </div>
 @endsection
 

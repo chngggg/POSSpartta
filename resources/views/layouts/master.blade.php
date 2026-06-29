@@ -31,6 +31,9 @@
     <!-- Stats Cards CSS -->
     <!-- <link rel="stylesheet" href="{{ asset('assets/css/stats-cards.css') }}"> -->
 
+    <!-- Theme Toggle JS -->
+    <script src="{{ asset('assets/js/theme.js') }}"></script>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     @stack('styles')
@@ -38,7 +41,6 @@
 
 <body>
     <div class="wrapper">
-        <!-- Sidebar Kayu Jati -->
         <nav id="sidebar">
             <div class="sidebar-header">
                 <h3>SPARTTA POS</h3>
@@ -112,7 +114,7 @@
 
                         <!-- Stock Opname - Menu Baru -->
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('stock-opname.index') }}">
+                            <a class="nav-link {{ request()->routeIs('stock-opname.index') ? 'active' : '' }}" href="{{ route('stock-opname.index') }}">
                                 <i class="fas fa-clipboard-list"></i>
                                 <span>Stock Opname</span>
                             </a>
@@ -204,15 +206,23 @@
                 <!-- Empty div untuk menjaga layout -->
                 <div></div>
 
-                <!-- Logout saja di navbar -->
-                <a href="#" class="text-decoration-none" style="color: var(--text-cream);"
-                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="ms-1">Logout</span>
-                </a>
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                    @csrf
-                </form>
+                <!-- Right side: Theme Toggle + Logout -->
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Theme Toggle Button -->
+                    <!-- <button type="button" id="themeToggle" class="btn btn-theme-toggle" title="Toggle Theme">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button> -->
+
+                    <!-- Logout -->
+                    <a href="#" class="text-decoration-none" style="color: var(--text-cream);"
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="ms-1 d-none d-sm-inline">Logout</span>
+                    </a>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                        @csrf
+                    </form>
+                </div>
             </div>
 
             <!-- Flash Messages -->

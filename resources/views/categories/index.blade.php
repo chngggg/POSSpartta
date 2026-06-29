@@ -38,7 +38,7 @@
             </div>
             <div class="stat-info">
                 <h3>{{ $categories->where('is_active', true)->count() }}</h3>
-                <p>Aktif</p>
+                <p>Tersedia</p>
             </div>
         </div>
         <div class="stat-card">
@@ -110,7 +110,7 @@
                     <td data-label="Status">
                         <span class="status-badge {{ $category->is_active ? 'status-active' : 'status-inactive' }}">
                             <i class="fas {{ $category->is_active ? 'fa-check-circle' : 'fa-times-circle' }} me-1"></i>
-                            {{ $category->is_active ? 'Aktif' : 'Nonaktif' }}
+                            {{ $category->is_active ? 'Tersedia' : 'Nonaktif' }}
                         </span>
                     </td>
                     <td data-label="Aksi">
